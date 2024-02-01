@@ -6,9 +6,9 @@ class Logger{
     }
 
     log(message, ...optionalParams){
-        if(this.enabled){
+//        if(this.enabled){
             console.log(this.tag + message, ...optionalParams)
-        }
+//        }
     }
 
 }
