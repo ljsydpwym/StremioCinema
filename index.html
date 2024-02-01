@@ -18,7 +18,7 @@
         console.log("base64",base64)
         const urlEncoded = encodeURIComponent(base64)
         console.log("urlEncoded",urlEncoded)
-        const link = `https://webshare-stremio.vercel.app/1/${urlEncoded}/manifest.json`
+        const link = `https://stremio-cinema.vercel.app/1/${urlEncoded}/manifest.json`
         document.getElementById("output").innerHTML = `
         <div>Enter this link into Stremio -> Addons -> Search addon box</div>
         <div>${link}</div>
