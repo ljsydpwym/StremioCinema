@@ -10,17 +10,17 @@ class Stremio{
 		this.sc = sc;
 	}
 
-    async universal(name, id, type) {
-        const ret = (await call('get', `${baseUrl}/${name}/${type}/${id}.json`)).body
-        logger.log("universal", arguments, ret)
-        return ret
-    }
+	async universal(name, id, type) {
+		const ret = (await call('get', `${baseUrl}/${name}/${type}/${id}.json`)).body
+		logger.log("universal", arguments, ret)
+		return ret
+	}
 
-    async meta(id, type) {
-        const ret = await this.universal("meta", id, type)
-        logger.log("meta", arguments, ret)
-        return ret
-    }
+	async meta(id, type) {
+		const ret = await this.universal("meta", id, type)
+		logger.log("meta", arguments, ret)
+		return ret
+	}
 
 	checkIfHasRightProtocol(url) {
 		if(url === undefined || url === null){
@@ -33,7 +33,7 @@ class Stremio{
 	}
 
 	formatMetaData(scMeta, type = "movie") {
-		const id = scMeta._source.services.imdb ?? this.sc.getWithPrefix(scMeta._id);
+		const id = this.sc.getWithPrefix(scMeta._id);
 		const imdbExists = scMeta._source.services.imdb != null;
 		return {
 			id: id,
