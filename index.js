@@ -142,7 +142,6 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
     const scStreams = await sc.streams(scId)
     logger.log("scStreams", scStreams)
     await webshare.loginIfNeeded(args.token)
-
     const files = Array.from(scStreams)
         .sort((a, b) => b.size - a.size)
         .map(it => {
@@ -167,12 +166,10 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                     original: it,
                     name: [name, video, audio, subtitle].join("\n"),
                     subtitles: formatSubtitles(Array.from(it.subtitles),webshare)
-
                 }
             }
         )
     logger.log("files", files)
-    await webshare.loginIfNeeded(args.token)
     const streams = await Promise.all(files.map(async (it) => {
         const link = await webshare.file_link(it.ident, it.original, "video_stream")
         const subtitles = await Promise.all( it.subtitles);
