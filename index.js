@@ -85,9 +85,8 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             scId = await sc.episode(mediaId, season, episode)
             logger.log("episode found")
         } else {
-            const searchType = args.type === "series" ? 'tvshow' : 'anime'
             try {
-                const scShow = await sc.search(mediaId, searchType)
+                const scShow = await sc.search(mediaId, "*")
                 logger.log("scShow", scShow.hits.hits[0]);
                 scId = await sc.episode(scShow.hits.hits[0]._id, season, episode)
                 logger.log("episode found")
@@ -111,7 +110,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             mediaId = args.id;
             const isImdbId = mediaId.startsWith("tt")
             if (!isImdbId) {
-                scId = args.id
+                scId = sc.getWithoutPrefix(mediaId);
             } else {
                 const scFiles = (await sc.search(mediaId, 'movie')).hits.hits
                 logger.log("scFiles", scFiles)
@@ -143,6 +142,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
     logger.log("scId", scId)
     const scStreams = await sc.streams(scId)
     logger.log("scStreams", scStreams)
+    await webshare.loginIfNeeded(args.token)
     const files = Array.from(scStreams)
         .sort((a, b) => b.size - a.size)
         .map(it => {
@@ -166,17 +166,19 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                     ident: it.ident,
                     original: it,
                     name: [name, video, audio, subtitle].join("\n"),
+                    subtitles: formatSubtitles(Array.from(it.subtitles),webshare)
                     bingeGroup: `${mediaId}-${videos.join("")}-${audios.join("")}`
                 }
             }
         )
     logger.log("files", files)
-    await webshare.loginIfNeeded(args.token)
     const streams = await Promise.all(files.map(async (it) => {
         const link = await webshare.file_link(it.ident, it.original, "video_stream")
+        const subtitles = await Promise.all( it.subtitles);
         return {
             url: link,
             title: `${it.name}`,
+            subtitles
             behaviorHints: {
                 bingeGroup: it.bingeGroup
             }
@@ -186,6 +188,17 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
     logger.log("output", output)
     res.send(output)
 })
+
+const formatSubtitles = (subtitles,webshare) =>{
+    return subtitles.filter(s => s.src !== undefined).map(async (subtitle)=>{
+        const indent = subtitle.src.split("/").pop();
+        return {
+            id:indent,
+            url:await webshare.file_link(indent, subtitle.src, "subtitle"),
+            lang:subtitle.language ?? "unknown",
+        }
+    })
+}
 
 async function fetchAndFormatData(type, search, skip) {
     const scData = search ? await sc.search(search, type) : await sc.searchFrom(type, skip);
@@ -200,8 +213,8 @@ app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
     const prefix = splitted[0];
     const realId = splitted[1];
     const sorting = splitted[2];
-    if(prefix !== "scc"){
-        return res.send({metas: []});
+    if (prefix !== "scc") {
+        return res.status(404).send("Not found");
     }
 
     const extra = req.params.extra ? qs.parse(req.params.extra) : {search: null, skip: null};
@@ -237,8 +250,8 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     const {type, id} = req.params;
     logger.log("meta", req.params)
 
-    if(!id.startsWith(sc.PREFIX) && type !== "anime"){
-        return res.send({meta: []});
+    if (!id.startsWith(sc.PREFIX) && type !== "anime") {
+        return res.status(404).send("Not found");
     }
 
     let sccId = sc.getWithoutPrefix(id);
@@ -257,8 +270,8 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
         return res.send({meta});
     }
 
-    if (type === "anime"){
-        if(id.startsWith("tt")){
+    if (type === "anime") {
+        if (id.startsWith("tt")) {
             sccId = (await sc.search(id, type)).hits.hits[0]._id;
         }
         logger.log("sccId", sccId);
