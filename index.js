@@ -112,7 +112,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             if (!isImdbId) {
                 scId = sc.getWithoutPrefix(mediaId);
             } else {
-                const scFiles = (await sc.search(mediaId, 'movie')).hits.hits
+                const scFiles = (await sc.search(mediaId, '*')).hits.hits
                 logger.log("scFiles", scFiles)
                 let scImdbMovie
                 if (scFiles.length >= 1) {
