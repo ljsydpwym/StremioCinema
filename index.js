@@ -70,14 +70,15 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
     const webshare = new Webshare()
     const args = req.params
     logger.log("defineStreamHandler", args)
-    let scId
+    let scId;
+    let mediaId;
     if (args.type === 'series' || args.type === "anime") {
         const idParts = args.id.split(":")
         const season = idParts[1]
         const episode = idParts[2]
         logger.log("idParts", idParts)
 
-        const mediaId = idParts[0];
+        mediaId = idParts[0];
         const isImdbId = mediaId.startsWith("tt");
 
         if (!isImdbId) {
@@ -107,7 +108,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
         }
     } else {
         try {
-            const mediaId = args.id;
+            mediaId = args.id;
             const isImdbId = mediaId.startsWith("tt")
             if (!isImdbId) {
                 scId = args.id
@@ -164,7 +165,8 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                 return {
                     ident: it.ident,
                     original: it,
-                    name: [name, video, audio, subtitle].join("\n")
+                    name: [name, video, audio, subtitle].join("\n"),
+                    bingeGroup: `${mediaId}-${videos.join("")}-${audios.join("")}`
                 }
             }
         )
@@ -174,7 +176,10 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
         const link = await webshare.file_link(it.ident, it.original, "video_stream")
         return {
             url: link,
-            title: `${it.name}`
+            title: `${it.name}`,
+            behaviorHints: {
+                bingeGroup: it.bingeGroup
+            }
         }
     }))
     const output = {streams: streams}
