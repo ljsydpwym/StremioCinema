@@ -166,7 +166,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                     ident: it.ident,
                     original: it,
                     name: [name, video, audio, subtitle].join("\n"),
-                    subtitles: formatSubtitles(Array.from(it.subtitles),webshare)
+                    subtitles: formatSubtitles(Array.from(it.subtitles),webshare),
                     bingeGroup: `${mediaId}-${videos.join("")}-${audios.join("")}`
                 }
             }
@@ -178,7 +178,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
         return {
             url: link,
             title: `${it.name}`,
-            subtitles
+            subtitles,
             behaviorHints: {
                 bingeGroup: it.bingeGroup
             }
