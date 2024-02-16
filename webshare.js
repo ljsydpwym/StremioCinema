@@ -3,7 +3,7 @@ const Logger = require('./logger.js')
 const call = require('./api')
 const crypto = require('crypto')
 const md5crypt = require('./crypt')
-const ymovie = require('./pass')
+const getPass = require("./pass");
 
 const logger = new Logger("Webshare", false)
 const baseUrl = "https://webshare.cz"
@@ -136,7 +136,7 @@ class Webshare {
             const saltValue = await this.file_link_salt(ident)
             logger.log("file_link saltValue", saltValue)
             logger.log("file_link Object['keys']", Object['keys'](original))
-            const pass = ymovie.util.Stream.p({
+            const pass = getPass({
                 audioCodec:"",
                 duration:"",
                 hdr:"",
