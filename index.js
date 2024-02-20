@@ -5,7 +5,7 @@ const Tmdb = require('./tmdb.js')
 const SC = require('./sc.js')
 const qs = require('querystring')
 const Config = require('./config.js')
-const {format, formatHeight, bytesToSize} = require('./helpers')
+const {format, formatHeight, bytesToSize} = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')

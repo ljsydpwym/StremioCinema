@@ -1,5 +1,5 @@
-const call = require('./api');
-const helpers = require('./helpers')
+const call = require('./api.js')
+const helpers = require('./helpers.js')
 
 class Stremio {
 
