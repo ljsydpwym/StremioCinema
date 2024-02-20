@@ -1,10 +1,7 @@
-const call = require('./api')
 const crypto = require('crypto')
+const call = require('./api')
 const md5crypt = require('./crypt')
-
-const baseUrl = "https://plugin.sc2.zone/api/media"
-const token = "9ajdu4xyn1ig8nxsodr3"
-const PREFIX = "scc:"
+const helpers = require('./helpers')
 
 class SC {
 
@@ -69,30 +66,18 @@ class SC {
 		}))
 	}
 
-	getWithPrefix(id) {
-		return `${this.PREFIX}${id}`
-	}
-
-	getWithoutPrefix(id) {
-		return id.replace(this.PREFIX, "")
-	}
-
 	#uuidv4() {
 		return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
 			(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
 		);
 	}
 
-	#queries(queries) {
-		return Object.keys(queries).map(key => `${key}=${queries[key]}`).join("&")
-	}
-
 	async #callInternal(path, params = {}) {
-		const queries = this.#queries({ ...params, access_token: token })
+		const queries = helpers.queries({ ...params, access_token: "9ajdu4xyn1ig8nxsodr3" })
 		return (await call(
 			`get`,
-			`${baseUrl}${path}?${queries}`,
-			undefined,
+			`https://plugin.sc2.zone/api/media${path}`,
+			queries,
 			{
 				headers: {
 					"User-Agent": "XBMC/13.0-ALPHA3 Git:20130430-e8fe5cf (Windows NT 6.1;WOW64;Win64;x64; http://www.xbmc.org)",

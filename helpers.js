@@ -25,9 +25,26 @@ function pad(value) {
     return value.length == 1 ? "0" + value : value
 }
 
+const PREFIX = "scc:"
+
+function getWithPrefix(id) {
+    return `${PREFIX}${id}`
+}
+
+function getWithoutPrefix(id) {
+    return id.replace(PREFIX, "")
+}
+
+function queries(queries) {
+    return Object.keys(queries).map(key => `${key}=${queries[key]}`).join("&")
+}
+
 module.exports = {
     format,
     formatHeight,
     bytesToSize,
-    pad
+    pad,
+    getWithPrefix,
+    getWithoutPrefix,
+    queries
 }
