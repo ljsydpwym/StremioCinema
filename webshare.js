@@ -137,7 +137,7 @@ class Webshare {
     #sha1(value) {
         return crypto.createHash('sha1').update(value).digest('hex')
     }
-    
+
     async #callInternal(path, params = {}) {
         const queries = helpers.queries(params)
         return (await call(

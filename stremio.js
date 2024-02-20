@@ -1,39 +1,16 @@
-const Logger = require('./logger.js')
 const call = require('./api');
+const helpers = require('./helpers')
 
-const logger = new Logger("Stremio", false)
-const baseUrl = "https://v3-cinemeta.strem.io"
-const META_HUB = "https://images.metahub.space";
-class Stremio{
+class Stremio {
 
-	constructor(sc) {
-		this.sc = sc;
-	}
-
-	async universal(name, id, type) {
-		const ret = (await call('get', `${baseUrl}/${name}/${type}/${id}.json`)).body
-		logger.log("universal", arguments, ret)
-		return ret
-	}
+	META_HUB = "https://images.metahub.space";
 
 	async meta(id, type) {
-		const ret = await this.universal("meta", id, type)
-		logger.log("meta", arguments, ret)
-		return ret
-	}
-
-	checkIfHasRightProtocol(url) {
-		if(url === undefined || url === null){
-			return null;
-		}
-		if(url.startsWith("//")){
-			return "https:" + url;
-		}
-		return url;
+		return await this.#callInternal("meta", id, type)
 	}
 
 	formatMetaData(scMeta, type = "movie") {
-		const id = this.sc.getWithPrefix(scMeta._id);
+		const id = helpers.sc.getWithPrefix(scMeta._id);
 		const imdbExists = scMeta._source.services.imdb != null;
 		return {
 			id: id,
@@ -45,8 +22,8 @@ class Stremio{
 			genres: scMeta._source.info_labels.genre,
 			runtime: (Math.round(scMeta._source.info_labels.duration / 60)) + " min",
 			releaseInfo: scMeta._source.info_labels.year,
-			logo: (imdbExists ? `${META_HUB}/logo/medium/${id}/img` : null),
-			poster: (imdbExists ? `${META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart)),
+			logo: (imdbExists ? `${this.META_HUB}/logo/medium/${id}/img` : null),
+			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart)),
 		};
 	}
 
@@ -57,7 +34,7 @@ class Stremio{
 			season: scMeta._source.info_labels.season,
 			episode: scMeta._source.info_labels.episode,
 			overview: scMeta._source.i18n_info_labels[0].plot,
-			thumbnail: this.checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart),
+			thumbnail: this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart),
 			released: new Date(scMeta._source.info_labels.premiered),
 			available: scMeta._source.stream_info !== undefined,
 		}
@@ -70,7 +47,7 @@ class Stremio{
 			background: data.i18n_info_labels[0].art.fanart,
 			name: data.i18n_info_labels[0].title,
 			genres: data.info_labels.genre,
-			poster: this.checkIfHasRightProtocol(data.i18n_info_labels[0].art.poster),
+			poster: this.#checkIfHasRightProtocol(data.i18n_info_labels[0].art.poster),
 			description: data.i18n_info_labels[0].plot,
 			director: data.info_labels.director.slice(0, 1),
 			released: new Date(data.info_labels.premiered),
@@ -78,6 +55,19 @@ class Stremio{
 		};
 	}
 
+	async #callInternal(name, id, type) {
+		return (await call('get', `https://v3-cinemeta.strem.io/${name}/${type}/${id}.json`)).body
+	}
+
+	#checkIfHasRightProtocol(url) {
+		if (url === undefined || url === null) {
+			return null;
+		}
+		if (url.startsWith("//")) {
+			return "https:" + url;
+		}
+		return url;
+	}
 
 }
 
