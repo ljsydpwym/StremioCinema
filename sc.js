@@ -1,4 +1,4 @@
-const crypto = require('crypto.js')
+const crypto = require('crypto')
 const call = require('./api.js')
 const md5crypt = require('./crypt.js')
 const helpers = require('./helpers.js')

@@ -1,6 +1,6 @@
 const Logger = require('./logger.js')
 const call = require('./api.js')
-const crypto = require('crypto.js')
+const crypto = require('crypto')
 const md5crypt = require('./crypt.js')
 const getPass = require("./pass.js");
 const helpers = require('./helpers.js')
