@@ -1,6 +1,5 @@
 const crypto = require('crypto')
 const call = require('./api.js')
-const md5crypt = require('./crypt.js')
 const helpers = require('./helpers.js')
 
 class SC {

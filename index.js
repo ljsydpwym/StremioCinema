@@ -63,7 +63,7 @@ app.get(baseUrl + '/log', function (req, res) {
 const logger = new Logger("Main", config.isDev)
 
 const sc = new SC()
-const stremio = new Stremio(sc)
+const stremio = new Stremio()
 const tmdb = new Tmdb()
 
 app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
