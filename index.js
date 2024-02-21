@@ -8,11 +8,14 @@ const qs = require('querystring')
 const env = require('./env.js')
 const cypher = require('./cypher.js')
 const helpers = require('./helpers.js')
+const sentry = require('./sentry.js')
 
 const express = require('express')
 const cors = require('cors')
 const app = express()
 const path = require('path');
+
+sentry.init(app)
 
 app.use(cors())
 
