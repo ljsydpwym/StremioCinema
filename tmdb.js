@@ -1,4 +1,4 @@
-const call = require('./api.js');
+const call = require('./call.js');
 
 class Tmdb {
 
