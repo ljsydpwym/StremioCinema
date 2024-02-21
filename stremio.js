@@ -1,6 +1,6 @@
 const Logger = require('./logger.js');
-// const call = require("./call.js");
 const helpers = require('./helpers.js');
+const call = require('./call.js');
 
 class Stremio {
 
