@@ -5,7 +5,7 @@ const Tmdb = require('./tmdb.js')
 const SC = require('./sc.js')
 const qs = require('querystring')
 const Config = require('./config.js')
-const {format, formatHeight, bytesToSize} = require('./helpers')
+const {format, formatHeight, bytesToSize, getWithoutPrefix} = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')
@@ -63,7 +63,7 @@ app.get(baseUrl + '/log', function (req, res) {
 const logger = new Logger("Main", config.isDev)
 
 const sc = new SC()
-const stremio = new Stremio(sc)
+const stremio = new Stremio()
 const tmdb = new Tmdb()
 
 app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
@@ -110,7 +110,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             mediaId = args.id;
             const isImdbId = mediaId.startsWith("tt")
             if (!isImdbId) {
-                scId = sc.getWithoutPrefix(mediaId);
+                scId = getWithoutPrefix(mediaId);
             } else {
                 const scFiles = (await sc.search(mediaId, '*')).hits.hits
                 logger.log("scFiles", scFiles)
@@ -254,7 +254,7 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
         return res.status(404).send("Not found");
     }
 
-    let sccId = sc.getWithoutPrefix(id);
+    let sccId = getWithoutPrefix(id);
 
     if (type === "series") {
         const data = await sc.media(sccId);
