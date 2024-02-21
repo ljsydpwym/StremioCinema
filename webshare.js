@@ -7,6 +7,27 @@ const helpers = require('./helpers.js')
 
 const logger = new Logger("Webshare", false)
 
+
+async function callInternal(path, params = {}) {
+    const queries = helpers.queries(params)
+    return (await call(
+        `post`,
+        `https://webshare.cz${path}`,
+        queries,
+        {
+            headers: {
+                "Host": "webshare.cz",
+                "Accept": "text/xml; charset=UTF-8",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            }
+        }
+    )).body
+}
+
+function sha1(value) {
+    return crypto.createHash('sha1').update(value).digest('hex')
+}
+
 class Webshare {
 
     passwords = new Map()
@@ -34,8 +55,8 @@ class Webshare {
     async login(username_or_email, password, keep_logged_in) {
         const saltValue = await this.salt(username_or_email)
         const md5Value = md5crypt(password, saltValue)
-        const sha1Value = this.#sha1(md5Value)
-        const token = (await this.#callInternal(
+        const sha1Value = sha1(md5Value)
+        const token = (await callInternal(
             `/api/login/`, {
             username_or_email: username_or_email,
             password: sha1Value,
@@ -50,14 +71,14 @@ class Webshare {
     }
 
     async salt(username_or_email) {
-        return (await this.#callInternal(
+        return (await callInternal(
             `/api/salt/`, {
             username_or_email: username_or_email,
         })).children[1].value
     }
 
     async search(what, category = "video", sort, limit = 20, offset = 0) {
-        return (await this.#callInternal(
+        return (await callInternal(
             `/api/search/`, {
             what: what,
             sort: sort,
@@ -69,7 +90,7 @@ class Webshare {
     }
 
     async file_link_salt(ident) {
-        return (await this.#callInternal(
+        return (await callInternal(
             `/api/file_password_salt/`, {
             ident: ident,
             wst: this.token,
@@ -77,7 +98,7 @@ class Webshare {
     }
 
     async file_protected(ident) {
-        return (await this.#callInternal(
+        return (await callInternal(
             `/api/file_protected/`, {
             ident: ident,
             wst: this.token,
@@ -105,12 +126,12 @@ class Webshare {
             logger.log("file_link pass", pass)
             const md5Value = md5crypt(pass, saltValue)
             logger.log("file_link md5Value", md5Value)
-            const sha1Value = this.#sha1(md5Value)
+            const sha1Value = sha1(md5Value)
             logger.log("file_link sha1Value", sha1Value)
             passwordPart = sha1Value
             logger.log("file_link passwordPart", passwordPart)
         }
-        const ret = (await this.#callInternal(
+        const ret = (await callInternal(
             `/api/file_link/`, {
             ident: ident,
             password: passwordPart,
@@ -125,35 +146,6 @@ class Webshare {
         })).children[1].value
         logger.log("file_link", arguments, ret)
         return ret
-    }
-
-    #xmlToObject(arr) {
-        var obj = {};
-        for (var i = 0; i < arr.length; i++) {
-            const tag = arr[i]
-            obj[tag.name] = tag.children.length > 0 ? this.#xmlToObject(tag.children) : tag.value;
-        }
-        return obj;
-    }
-
-    #sha1(value) {
-        return crypto.createHash('sha1').update(value).digest('hex')
-    }
-
-    async #callInternal(path, params = {}) {
-        const queries = helpers.queries(params)
-        return (await call(
-            `post`,
-            `https://webshare.cz${path}`,
-            queries,
-            {
-                headers: {
-                    "Host": "webshare.cz",
-                    "Accept": "text/xml; charset=UTF-8",
-                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                }
-            }
-        )).body
     }
 
 }
