@@ -6,12 +6,31 @@ const SC = require('./sc.js')
 const qs = require('querystring')
 const Config = require('./config.js')
 const {format, formatHeight, bytesToSize, getWithoutPrefix} = require('./helpers.js')
+const Sentry = require("@sentry/node");
+const ProfilingIntegration = require("@sentry/profiling-node").ProfilingIntegration;
+
 
 const express = require('express')
 const cors = require('cors')
 const app = express()
 const path = require('path');
 const config = new Config();
+
+Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Sentry.Integrations.Express({ app }),
+        new ProfilingIntegration(),
+    ],
+    tracesSampleRate: 0.5,
+    profilesSampleRate: 0.5,
+});
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
+
 
 app.use(cors())
 
@@ -286,6 +305,13 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/index.html'))
 })
+
+app.use(Sentry.Handlers.errorHandler());
+
+app.use(function onError(err, req, res, next) {
+    res.statusCode = 500;
+    res.end(res.sentry + "\n");
+});
 
 const port = process.env.PORT || 4000
 
