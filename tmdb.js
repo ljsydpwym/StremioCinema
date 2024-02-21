@@ -1,6 +1,5 @@
-
-
 const call = require('./api.js');
+const helpers = require('./helpers.js');
 
 class Tmdb {
 

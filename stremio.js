@@ -11,7 +11,7 @@ class Stremio {
 	}
 
 	formatMetaData(scMeta, type = "movie") {
-		const id = helpers.sc.getWithPrefix(scMeta._id);
+		const id = helpers.getWithPrefix(scMeta._id);
 		const imdbExists = scMeta._source.services.imdb != null;
 		return {
 			id: id,
