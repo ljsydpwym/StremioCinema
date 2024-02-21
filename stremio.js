@@ -3,6 +3,8 @@ const call = require('./api.js');
 
 class Stremio {
 
+	constructor(){}
+
 	META_HUB = "https://images.metahub.space";
 
 	async meta(id, type) {

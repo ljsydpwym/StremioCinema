@@ -4,6 +4,8 @@ const helpers = require('./helpers.js')
 
 class SC {
 
+	constructor(){}
+	
 	async search(value, type = "*") {
 		return JSON.parse(await this.#callInternal(`/filter/v2/search`, {
 			type: type,

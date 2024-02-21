@@ -3,6 +3,8 @@ const helpers = require('./helpers.js');
 
 class Tmdb {
 
+	constructor(){}
+    
     async find(imdbId) {
         return this.#callInternal(`/find/${imdbId}`, {
             external_source: "imdb_id"

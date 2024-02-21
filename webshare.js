@@ -11,6 +11,8 @@ class Webshare {
 
     passwords = new Map()
 
+	constructor(){}
+    
     async loginIfNeeded(encodedToken) {
         logger.log("md5 map", this.md5Value)
         logger.log("encodedToken", encodedToken)
