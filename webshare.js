@@ -7,27 +7,6 @@ const helpers = require('./helpers.js')
 
 const logger = new Logger("Webshare", false)
 
-
-async function callInternal(path, params = {}) {
-    const queries = helpers.queries(params)
-    return (await call(
-        `post`,
-        `https://webshare.cz${path}`,
-        queries,
-        {
-            headers: {
-                "Host": "webshare.cz",
-                "Accept": "text/xml; charset=UTF-8",
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            }
-        }
-    )).body
-}
-
-function sha1(value) {
-    return crypto.createHash('sha1').update(value).digest('hex')
-}
-
 class Webshare {
 
     passwords = new Map()
@@ -148,6 +127,26 @@ class Webshare {
         return ret
     }
 
+}
+
+async function callInternal(path, params = {}) {
+    const queries = helpers.queries(params)
+    return (await call(
+        `post`,
+        `https://webshare.cz${path}`,
+        queries,
+        {
+            headers: {
+                "Host": "webshare.cz",
+                "Accept": "text/xml; charset=UTF-8",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            }
+        }
+    )).body
+}
+
+function sha1(value) {
+    return crypto.createHash('sha1').update(value).digest('hex')
 }
 
 module.exports = Webshare
