@@ -1,17 +1,18 @@
+require('dotenv').config()
 const Logger = require('./logger.js')
 const Stremio = require('./stremio.js')
 const Webshare = require('./webshare.js')
 const Tmdb = require('./tmdb.js')
 const SC = require('./sc.js')
 const qs = require('querystring')
-const Config = require('./config.js')
+const env = require('./env.js')
+const cypher = require('./cypher.js')
 const {format, formatHeight, bytesToSize, getWithoutPrefix} = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')
 const app = express()
 const path = require('path');
-const config = new Config();
 
 app.use(cors())
 
@@ -21,9 +22,9 @@ app.get(baseUrl + '/manifest.json', function (req, res) {
     res.setHeader('Cache-Control', 'max-age=86400') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
-        id: config.getId(),
+        id: env.PLUGIN_ID,
         version: '1.0.0',
-        name: config.getName(),
+        name: env.PLUGIN_NAME(),
         description: "Add-on to hook into SCC and Webshare VIP search",
         catalogs: [{
             type: 'movie',
@@ -60,7 +61,7 @@ app.get(baseUrl + '/log', function (req, res) {
     res.sendFile('log.txt', {root: __dirname})
 })
 
-const logger = new Logger("Main", config.isDev)
+const logger = new Logger("Main")
 
 const sc = new SC()
 const stremio = new Stremio()
@@ -175,8 +176,13 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
     const streams = await Promise.all(files.map(async (it) => {
         const link = await webshare.file_link(it.ident, it.original, "video_stream")
         const subtitles = await Promise.all( it.subtitles);
+        const encrypted = cypher.encrypt(link)
+        logger.log("encrypted", encrypted)
+        const decrypted = cypher.decrypt(encrypted)
+        logger.log("decrypted", decrypted)
+        const url = `${req.protocol}://${req.get('host')}/stream/url/${encrypted}.json`
         return {
-            url: link,
+            url: url,
             title: `${it.name}`,
             subtitles,
             behaviorHints: {
@@ -205,6 +211,15 @@ async function fetchAndFormatData(type, search, skip) {
     const scMovies = scData.hits.hits;
     return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type === "movie" ? undefined : "series"));
 }
+
+
+app.get('/stream/url/:id.json', async function (req, res) {
+    logger.log("url", req.params)
+    const {id} = req.params;
+    const decrypted = cypher.decrypt(id)
+    logger.log("decrypted", decrypted)
+    res.redirect(decrypted)
+})
 
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
     const {id} = req.params;
@@ -287,7 +302,7 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/index.html'))
 })
 
-const port = process.env.PORT || 4000
+const port = env.PORT
 
 app.listen(port, function () {
     console.log(`http://127.0.0.1:${port}${baseUrl}/manifest.json`)

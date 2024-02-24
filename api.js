@@ -1,7 +1,7 @@
 const Logger = require('./logger.js')
 const needle = require('needle');
 
-const logger = new Logger("CALL", false)
+const logger = new Logger("CALL")
 
 async function call(method, url, data, options) {
     logger.log("Api request", arguments)
