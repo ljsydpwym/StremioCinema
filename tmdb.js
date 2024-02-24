@@ -1,5 +1,6 @@
 const call = require('./api.js');
 const helpers = require('./helpers.js');
+const env = require('./env.js');
 
 class Tmdb {
 
@@ -16,7 +17,7 @@ class Tmdb {
     }
 
     async #callInternal(path, params = {}) {
-        const queries = helpers.queries({ ...params, api_key: "ef7d0ef48dd68863160319b1a7231d6c" })
+        const queries = helpers.queries({ ...params, api_key: env.TMDB_TOKEN })
         return (await call(
             `get`,
             `https://api.themoviedb.org/3/${path}`,

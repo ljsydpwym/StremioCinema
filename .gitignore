@@ -1,6 +1,8 @@
 /node_modules/
+/Scratch/
 /.idea/
 /.vscode/
 /log.txt
 /.DS_Store
 /local.properties
+/.env

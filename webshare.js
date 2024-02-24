@@ -5,7 +5,7 @@ const md5crypt = require('./crypt.js')
 const getPass = require("./pass.js");
 const helpers = require('./helpers.js')
 
-const logger = new Logger("Webshare", false)
+const logger = new Logger("Webshare")
 
 class Webshare {
 

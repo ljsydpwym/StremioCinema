@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const call = require('./api.js')
 const helpers = require('./helpers.js')
+const env = require('./env.js')
 
 class SC {
 
@@ -74,7 +75,7 @@ class SC {
 	}
 
 	async #callInternal(path, params = {}) {
-		const queries = helpers.queries({ ...params, access_token: "9ajdu4xyn1ig8nxsodr3" })
+		const queries = helpers.queries({ ...params, access_token: env.SC_TOKEN })
 		return (await call(
 			`get`,
 			`https://plugin.sc2.zone/api/media${path}`,
