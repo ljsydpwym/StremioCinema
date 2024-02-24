@@ -11,16 +11,5 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "x-robots-tag",
-          "value": "index, follow"
-        }
-      ]
-    }
   ]
 }
