@@ -24,7 +24,7 @@ app.get(baseUrl + '/manifest.json', function (req, res) {
     res.send({
         id: env.PLUGIN_ID,
         version: '1.0.0',
-        name: env.PLUGIN_NAME(),
+        name: env.PLUGIN_NAME,
         description: "Add-on to hook into SCC and Webshare VIP search",
         catalogs: [{
             type: 'movie',
