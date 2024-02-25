@@ -19,7 +19,7 @@ app.use(cors())
 const baseUrl = '/1/:token'
 
 app.get(baseUrl + '/manifest.json', function (req, res) {
-    res.setHeader('Cache-Control', 'max-age=1') // one day
+    res.setHeader('Cache-Control', 'max-age=86400') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
