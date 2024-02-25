@@ -27,6 +27,9 @@ function pad(value) {
 
 const PREFIX = "scc:"
 
+function startWithPrefix(id) {
+    return id.startsWith("scc")
+}
 function getWithPrefix(id) {
     return `${PREFIX}${id}`
 }
@@ -44,6 +47,7 @@ module.exports = {
     formatHeight,
     bytesToSize,
     pad,
+    startWithPrefix,
     getWithPrefix,
     getWithoutPrefix,
     queries

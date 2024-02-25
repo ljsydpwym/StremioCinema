@@ -7,7 +7,7 @@ const SC = require('./sc.js')
 const qs = require('querystring')
 const env = require('./env.js')
 const cypher = require('./cypher.js')
-const {format, formatHeight, bytesToSize, getWithoutPrefix} = require('./helpers.js')
+const {format, formatHeight, bytesToSize, getWithoutPrefix, startWithPrefix} = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')
@@ -228,7 +228,7 @@ app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
     const prefix = splitted[0];
     const realId = splitted[1];
     const sorting = splitted[2];
-    if (prefix !== "scc") {
+    if (!startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
@@ -265,7 +265,7 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     const {type, id} = req.params;
     logger.log("meta", req.params)
 
-    if (!id.startsWith(sc.PREFIX)) {
+    if (!startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
