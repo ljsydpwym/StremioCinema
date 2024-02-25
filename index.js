@@ -19,7 +19,7 @@ app.use(cors())
 const baseUrl = '/1/:token'
 
 app.get(baseUrl + '/manifest.json', function (req, res) {
-    res.setHeader('Cache-Control', 'max-age=86400') // one day
+    res.setHeader('Cache-Control', 'max-age=1') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
@@ -264,10 +264,6 @@ app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
 app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     const {type, id} = req.params;
     logger.log("meta", req.params)
-
-    if (!id.startsWith(sc.PREFIX) && type !== "anime") {
-        return res.status(404).send("Not found");
-    }
 
     let sccId = getWithoutPrefix(id);
 
