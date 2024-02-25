@@ -265,6 +265,10 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     const {type, id} = req.params;
     logger.log("meta", req.params)
 
+    if (!id.startsWith(sc.PREFIX)) {
+        return res.status(404).send("Not found");
+    }
+
     let sccId = getWithoutPrefix(id);
 
     if (type === "series") {
