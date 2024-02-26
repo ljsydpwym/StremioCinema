@@ -20,7 +20,7 @@ class Tmdb {
         const queries = helpers.queries({ ...params, api_key: env.TMDB_TOKEN })
         return (await call(
             `get`,
-            `https://api.themoviedb.org/3/${path}`,
+            `https://api.themoviedb.org/3${path}`,
             queries
         )).body
     }

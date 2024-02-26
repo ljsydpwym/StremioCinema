@@ -39,20 +39,19 @@ class SC {
 	}
 
 	async episode(id, season, episode) {
-		const seasonsResponse = await this.parent(id)
-		const seasonId = (seasonsResponse.hits.hits.find(it => it._source.info_labels.season == season) ?? seasonsResponse.hits.hits[season - 1])._id;
-		const episodesResponse = await this.parent(seasonId)
-		return episodesResponse.hits.hits[episode - 1]._id
+		const seasonsResponse = (await this.parent(id)).hits.hits
+		const seasonId = (seasonsResponse.find(it => it._source.info_labels.season == season) ?? seasonsResponse[season - 1])._id;
+		const episodesResponse = (await this.parent(seasonId)).hits.hits
+		return episodesResponse[episode - 1]._id
 	}
 
 	async episodes(id) {
-		const seasonsResponse = await this.parent(id);
-		const hits = seasonsResponse.hits.hits;
+		const seasonsResponse = (await this.parent(id)).hits.hits;
 		const episodes = [];
-		for (const hit of hits) {
+		for (const hit of seasonsResponse) {
 			const seasonId = hit._id;
-			const episodesResponse = await this.parent(seasonId);
-			episodes.push(...episodesResponse.hits.hits);
+			const episodesResponse = (await this.parent(seasonId)).hits.hits;
+			episodes.push(...episodesResponse);
 		}
 		return episodes;
 	}

@@ -25,13 +25,25 @@ function pad(value) {
     return value.length == 1 ? "0" + value : value
 }
 
-const PREFIX = "scc:"
+const PREFIX = "scc_"
+
+const STREMIO_TYPE = {
+    MOVIE: "movies",
+    SHOW: "series",
+    ANIME: "anime",
+}
+const SCC_TYPE = {
+    ANY: "*",
+    MOVIE: "movie",
+    SHOW: "tvshow",
+    ANIME: "anime",
+}
 
 function startWithPrefix(id) {
     return id.startsWith("scc")
 }
 function getWithPrefix(id) {
-    return `${PREFIX}${id}`
+    return id.startsWith(PREFIX) ? id : `${PREFIX}${id}`
 }
 
 function getWithoutPrefix(id) {
@@ -50,5 +62,8 @@ module.exports = {
     startWithPrefix,
     getWithPrefix,
     getWithoutPrefix,
-    queries
+    queries,
+    PREFIX,
+    STREMIO_TYPE,
+    SCC_TYPE
 }

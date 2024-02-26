@@ -7,7 +7,7 @@ const SC = require('./sc.js')
 const qs = require('querystring')
 const env = require('./env.js')
 const cypher = require('./cypher.js')
-const {format, formatHeight, bytesToSize, getWithoutPrefix, startWithPrefix} = require('./helpers.js')
+const helpers = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')
@@ -16,9 +16,23 @@ const path = require('path');
 
 app.use(cors())
 
+const logger = new Logger("Main", true)
+
+const sc = new SC()
+const stremio = new Stremio()
+const tmdb = new Tmdb()
+const webshare = new Webshare()
+
 const baseUrl = '/1/:token'
 
-app.get(baseUrl + '/manifest.json', function (req, res) {
+app.get(baseUrl + '/manifest.json', manifesf)
+app.get(baseUrl + '/catalog/:type/:id/:extra?.json', catalog)
+app.get(baseUrl + '/meta/:type/:id.json', meta);
+app.get(baseUrl + '/stream/:type/:id.json', streams)
+app.get('/stream/url/:id.json', url)
+app.get('/', index)
+
+function manifesf(req, res) {
     res.setHeader('Cache-Control', 'max-age=86400') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
@@ -26,158 +40,155 @@ app.get(baseUrl + '/manifest.json', function (req, res) {
         version: '1.0.0',
         name: env.PLUGIN_NAME,
         description: "Add-on to hook into SCC and Webshare VIP search",
+        resources: ['stream', 'catalog', {
+            name: "meta",
+            types: [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME],
+            idPrefix: [helpers.PREFIX],
+        }],
         catalogs: [{
-            type: 'movie',
+            type: helpers.STREMIO_TYPE.MOVIE,
             id: 'scc_movies_news',
             name: 'SCC - movies',
             extra: [
-                {name: "search", isRequired: false},
+                { name: "search", isRequired: false },
             ]
         }, {
-            type: 'series',
+            type: helpers.STREMIO_TYPE.SHOW,
             id: 'scc_series_news',
             name: 'SCC - series',
             extra: [
-                {name: "search", isRequired: false},
+                { name: "search", isRequired: false },
             ]
         }, {
-            type: "anime",
+            type: helpers.STREMIO_TYPE.ANIME,
             id: "scc_anime_news",
             name: "SCC - anime",
             extra: [
-                {name: "search", isRequired: false},
+                { name: "search", isRequired: false },
             ]
         }
         ],
-        resources: ['stream', 'catalog', {
-            name: "meta",
-            types: ["movie", "series", "anime"]
-        }],
-        types: ['movie', 'series', "anime"],
+        types: [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME],
     })
-})
+}
 
-app.get(baseUrl + '/log', function (req, res) {
-    res.sendFile('log.txt', {root: __dirname})
-})
-
-const logger = new Logger("Main", true)
-
-const sc = new SC()
-const stremio = new Stremio()
-const tmdb = new Tmdb()
-
-app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
-    const webshare = new Webshare()
-    const args = req.params
-    logger.log("defineStreamHandler", args)
+async function streams(req, res){
+    const { type, id, token } = req.params
+    logger.log("defineStreamHandler", req.params)
+    const idParts = id.split(":")
+    const mediaId = idParts[0];
     let scId;
-    let mediaId;
-    if (args.type === 'series' || args.type === "anime") {
-        const idParts = args.id.split(":")
-        const season = idParts[1]
-        const episode = idParts[2]
-        logger.log("idParts", idParts)
+    if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
+        scId = await getShow(mediaId, idParts[1], idParts[2])
+    } else {
+        scId = await getMovie(mediaId, idParts[1], idParts[2])
+    }
+    if (!scId) {
+        return res.send({ streams: [] })
+    }
+    logger.log("scId", scId)
+    const scStreams = Array.from(await sc.streams(scId))
+    logger.log("scStreams", scStreams)
+    await webshare.loginIfNeeded(token)
+    const webshareMeta = await getWebshareMeta(scStreams)
+    logger.log("webshareMeta", webshareMeta)
+    const streams = await getStreams(webshareMeta, req)
+    logger.log("streams", streams)
+    res.send({ streams: streams })
+}
 
-        mediaId = idParts[0];
-        const isImdbId = mediaId.startsWith("tt");
 
-        if (!isImdbId) {
-            scId = await sc.episode(mediaId, season, episode)
+async function getShow(mediaId, season, episode) {
+    let scId;
+    try {
+        if (helpers.startWithPrefix(mediaId)) {
+            scId = (await sc.episode(helpers.getWithoutPrefix(mediaId), season, episode))
             logger.log("episode found")
         } else {
             try {
-                const searchResult = await sc.search(search, "tvshow")
-                const scShow = searchResult.hits.hits[0]
-                logger.log("scShow", scShow);
-                scId = await sc.episode(scShow._id, season, episode)
+                const scFile = (await sc.search(mediaId, helpers.SCC_TYPE.SHOW)).hits.hits[0]
+                logger.log("scShow", scFile);
+                scId = (await sc.episode(scFile._id, season, episode))
                 logger.log("episode found")
             } catch (e) {
-                logger.log("error", e)
-
-                const tmdbInfo = await tmdb.find(mediaId)
-                logger.log("tmdbInfo", tmdbInfo)
-                const tmdbShow = tmdbInfo.tv_results[0]
+                logger.log("fallbacking with error", e)
+                const tmdbShow = (await tmdb.find(mediaId)).tv_results[0]
                 logger.log("tmdbShow", tmdbShow)
-
-                const search = `${tmdbShow.name}`
-                const searchResult = await sc.search(search, "tvshow")
-                const scShow = searchResult.hits.hits[0]
+                const search = tmdbShow.name
+                const scShow = (await sc.search(search, helpers.SCC_TYPE.SHOW)).hits.hits[0]
                 logger.log("scShow tmdb fallback", scShow);
-                scId = await sc.episode(scShow._id, season, episode)
+                scId = (await sc.episode(scShow._id, season, episode))
                 logger.log("episode found tmdb fallback search", search)
             }
         }
-    } else {
-        try {
-            mediaId = args.id;
-            const isImdbId = mediaId.startsWith("tt")
-            if (!isImdbId) {
-                scId = getWithoutPrefix(mediaId);
-            } else {
-                const scFiles = (await sc.search(mediaId, '*')).hits.hits
-                logger.log("scFiles", scFiles)
-                let scImdbMovie
-                if (scFiles.length >= 1) {
-                    scImdbMovie = scFiles[0]
-                    logger.log("movie found")
-                } else {
-                    const tmdbInfo = await tmdb.find(mediaId)
-                    logger.log("tmdbInfo", tmdbInfo)
-                    const tmdbMovie = tmdbInfo.movie_results[0]
-                    logger.log("tmdbMovie", tmdbMovie)
-                    const search = tmdbMovie.title
-                    const scMovies = (await sc.search(search, 'movie')).hits.hits
-                    scImdbMovie = scMovies[0]
-                    logger.log("movie not found - fallback search", search)
-                }
-                if (scImdbMovie === undefined) {
-                    throw new Error("Movie not found")
-                }
-                scId = scImdbMovie._id
-            }
-        } catch (e) {
-            logger.log("error", e)
-            return res.send({streams: []})
-        }
+    } catch (e) {
+        scId = undefined
     }
+    return scId
+}
 
-    logger.log("scId", scId)
-    const scStreams = await sc.streams(scId)
-    logger.log("scStreams", scStreams)
-    await webshare.loginIfNeeded(args.token)
-    const files = Array.from(scStreams)
+async function getMovie(mediaId) {
+    let scId;
+    try {
+        if (helpers.startWithPrefix(mediaId)) {
+            scId = helpers.getWithoutPrefix(mediaId);
+        } else {
+            try {
+                const scMovie = (await sc.search(mediaId, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
+                logger.log("scMovie", scMovie)
+                scId = scMovie._id
+                logger.log("movie found")
+            } catch (e) {
+                logger.log("fallbacking with error", e)
+                const tmdbInfo = (await tmdb.find(mediaId))
+                logger.log("tmdbInfo", tmdbInfo)
+                const tmdbMovie = tmdbInfo.movie_results[0]
+                logger.log("tmdbMovie", tmdbMovie)
+                const search = tmdbMovie.title
+                const scMovie = (await sc.search(search, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
+                scId = scMovie._id
+                logger.log("movie not found - fallback search", search)
+            }
+        }
+    } catch (e) {
+        scId = undefined
+    }
+    return scId
+}
+
+async function getWebshareMeta(scStreams) {
+    return scStreams
         .sort((a, b) => b.size - a.size)
         .map(it => {
-                const videos = Array.from(it.video)
-                    .filter(it => it.height !== undefined)
-                    .map(it => formatHeight(it.height))
-                const audios = [...new Set(Array.from(it.audio)
-                    .filter(it => it.language !== undefined && it.language.length > 0)
-                    .map(it => format(it.language))
-                    .sort((a, b) => a.localeCompare(b)))];
-                const subtitles = [...new Set(Array.from(it.subtitles)
-                    .filter(it => it.language !== undefined && it.language.length > 0)
-                    .map(it => format(it.language))
-                    .sort((a, b) => a.localeCompare(b)))];
+            const videos = Array.from(it.video)
+                .filter(it => it.height !== undefined)
+                .map(it => helpers.formatHeight(it.height))
+            const audios = [...new Set(Array.from(it.audio)
+                .filter(it => it.language !== undefined && it.language.length > 0)
+                .map(it => helpers.format(it.language))
+                .sort((a, b) => a.localeCompare(b)))];
+            const subtitles = [...new Set(Array.from(it.subtitles)
+                .filter(it => it.language !== undefined && it.language.length > 0)
+                .map(it => helpers.format(it.language))
+                .sort((a, b) => a.localeCompare(b)))];
 
-                const name = `Size: ${bytesToSize(it.size)}`
-                const video = videos ? "Video: " + videos.join(",") : undefined
-                const audio = audios ? "Audio: " + audios.join(",") : undefined
-                const subtitle = subtitles ? "Subtitles: " + subtitles.join(",") : undefined
-                return {
-                    ident: it.ident,
-                    original: it,
-                    name: [name, video, audio, subtitle].join("\n"),
-                    subtitles: formatSubtitles(Array.from(it.subtitles),webshare),
-                    bingeGroup: `${mediaId}-${videos.join("")}-${audios.join("")}`
-                }
+            const name = `Size: ${helpers.bytesToSize(it.size)}`
+            const video = videos ? "Video: " + videos.join(",") : undefined
+            const audio = audios ? "Audio: " + audios.join(",") : undefined
+            const subtitle = subtitles ? "Subtitles: " + subtitles.join(",") : undefined
+            return {
+                ident: it.ident,
+                original: it,
+                name: [name, video, audio, subtitle].join("\n"),
+                subtitles: formatSubtitles(Array.from(it.subtitles), webshare),
+                bingeGroup: `${videos.join("")}-${audios.join("")}`
             }
-        )
-    logger.log("files", files)
-    const streams = await Promise.all(files.map(async (it) => {
+        })
+}
+async function getStreams(files, req) {
+    return await Promise.all(files.map(async (it) => {
         const link = await webshare.file_link(it.ident, it.original, "video_stream")
-        const subtitles = await Promise.all( it.subtitles);
+        const subtitles = await Promise.all(it.subtitles);
         const encrypted = cypher.encrypt(link)
         logger.log("encrypted", encrypted)
         const decrypted = cypher.decrypt(encrypted)
@@ -192,18 +203,15 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             }
         }
     }))
-    const output = {streams: streams}
-    logger.log("output", output)
-    res.send(output)
-})
+}
 
-const formatSubtitles = (subtitles,webshare) =>{
-    return subtitles.filter(s => s.src !== undefined).map(async (subtitle)=>{
+const formatSubtitles = (subtitles, webshare) => {
+    return subtitles.filter(s => s.src !== undefined).map(async (subtitle) => {
         const indent = subtitle.src.split("/").pop();
         return {
-            id:indent,
-            url:await webshare.file_link(indent, subtitle.src, "subtitle"),
-            lang:subtitle.language ?? "unknown",
+            id: indent,
+            url: await webshare.file_link(indent, subtitle.src, "subtitle"),
+            lang: subtitle.language ?? "unknown",
         }
     })
 }
@@ -211,98 +219,80 @@ const formatSubtitles = (subtitles,webshare) =>{
 async function fetchAndFormatData(type, search, skip) {
     const scData = search ? await sc.search(search, type) : await sc.searchFrom(type, skip);
     const scMovies = scData.hits.hits;
-    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type === "movie" ? undefined : "series"));
+    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type));
 }
 
 
-app.get('/stream/url/:id.json', async function (req, res) {
+
+async function url(req, res) {
     logger.log("url", req.params)
-    const {id} = req.params;
+    const { id } = req.params;
     const decrypted = cypher.decrypt(id)
     logger.log("decrypted", decrypted)
     res.redirect(decrypted)
-})
+}
 
-app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
-    const {id} = req.params;
+async function catalog(req, res) {
+    const { id } = req.params;
     logger.log("catalog", req.params)
     const splitted = id.split("_");
     const prefix = splitted[0];
     const realId = splitted[1];
     const sorting = splitted[2];
-    if (!startWithPrefix(id)) {
+    if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
-    const extra = req.params.extra ? qs.parse(req.params.extra) : {search: null, skip: null};
+    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null };
     if (extra.skip === undefined)
         extra.skip = null;
     if (extra.search === undefined)
         extra.search = null;
     let type;
     switch (realId) {
-        case "movies":
-            type = "movie";
+        case helpers.STREMIO_TYPE.MOVIE:
+            type = helpers.SCC_TYPE.MOVIE;
             break;
-        case "series":
-            type = "tvshow";
+        case helpers.STREMIO_TYPE.SHOW:
+            type = helpers.SCC_TYPE.SHOW;
             break;
-        case "anime":
-            type = "anime";
+            case helpers.STREMIO_TYPE.ANIME:
+                type = helpers.SCC_TYPE.ANIME;
             break;
         default:
             type = undefined;
     }
     if (type === undefined) {
         logger.log("for id " + realId + " type is undefined");
-        return res.json({metas: []});
+        return res.json({ metas: [] });
     }
     const metas = await fetchAndFormatData(type, extra.search, extra.skip);
     logger.log("metas", metas)
-    return res.json({metas});
-})
+    return res.json({ metas });
+}
 
-
-app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
-    const {type, id} = req.params;
+async function meta(req, res) {
+    const { type, id } = req.params;
     logger.log("meta", req.params)
 
-    if (!startWithPrefix(id)) {
+    if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
-    let sccId = getWithoutPrefix(id);
+    let sccId = helpers.getWithoutPrefix(id);
 
-    if (type === "series") {
-        const data = await sc.media(sccId);
+    const data = await sc.media(sccId);
+    const meta = stremio.createMeta(data, type, id);
+    if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
         const episodes = await sc.episodes(sccId);
-        const meta = stremio.createMeta(data, type, id);
         meta.videos = episodes.map(it => stremio.formatEpisodeMetaData(it));
-        return res.send({meta});
     }
+    return res.send({ meta });
+}
 
-    if (type === "movie") {
-        const data = await sc.media(sccId);
-        const meta = stremio.createMeta(data, type, id);
-        return res.send({meta});
-    }
-
-    if (type === "anime") {
-        if (id.startsWith("tt")) {
-            sccId = (await sc.search(id, type)).hits.hits[0]._id;
-        }
-        logger.log("sccId", sccId);
-        const data = await sc.media(sccId);
-        const episodes = await sc.episodes(sccId);
-        const meta = stremio.createMeta(data, type, id);
-        meta.videos = episodes.map(it => stremio.formatEpisodeMetaData(it));
-        return res.send({meta});
-    }
-});
-
-app.get('/', function (req, res) {
+function index(req, res) {
     res.sendFile(path.join(__dirname, '/index.html'))
-})
+}
 
 const port = env.PORT
 

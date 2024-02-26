@@ -1,5 +1,8 @@
 const helpers = require('./helpers.js');
 const call = require('./api.js');
+const Logger = require('./logger.js');
+
+const logger = new Logger("Stremio", true)
 
 class Stremio {
 
@@ -11,24 +14,8 @@ class Stremio {
 		return await this.#callInternal("meta", id, type)
 	}
 
-	formatMetaData(scMeta, type = "movie") {
-		const id = helpers.getWithPrefix(scMeta._id);
-		const imdbExists = scMeta._source.services.imdb != null;
-		const label = scMeta._source.info_labels
-		const translatedLabel = scMeta._source.i18n_info_labels[0]
-		return {
-			id: id,
-			type: type,
-			name: translatedLabel.title,
-			description: translatedLabel.plot,
-			cast: scMeta._source.cast.slice(0, 3).map(it => it.name),
-			director: label.director.slice(0, 1),
-			genres: label.genre,
-			runtime: (Math.round(label.duration / 60)) + " min",
-			releaseInfo: label.year,
-			logo: (imdbExists ? `${this.META_HUB}/logo/medium/${id}/img` : null),
-			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart)),
-		};
+	formatMetaData(scMeta, type) {
+		return this.createMeta(scMeta._source, type, scMeta._id)
 	}
 
 	formatEpisodeMetaData(scMeta) {
@@ -36,31 +23,43 @@ class Stremio {
 		const translatedLabel = scMeta._source.i18n_info_labels[0]
 		const premiere = new Date(label.premiered)
 		premiere.setHours(23, 59, 59)
-		return {
-			id: `${scMeta._source.root_parent}:${label.season}:${label.episode}`,
+		const ret = {
+			id: helpers.getWithPrefix(`${scMeta._source.root_parent}:${label.season}:${label.episode}`),
 			title: translatedLabel.title ?? `Episode ${label.episode}`,
 			season: label.season,
 			episode: label.episode,
 			overview: translatedLabel.plot,
+			imdbRating: scMeta._source?.ratings?.overall?.rating,
 			thumbnail: this.#checkIfHasRightProtocol(translatedLabel.art.poster || translatedLabel.art.fanart),
 			released: premiere,
 			available: scMeta._source.stream_info !== undefined,
 		}
+		logger.log("formatEpisodeMetaData", ret)
+		return ret
 	}
 
 	createMeta(data, type, id) {
-		return {
-			id,
-			type,
-			background: data.i18n_info_labels[0].art.fanart,
-			name: data.i18n_info_labels[0].title,
-			genres: data.info_labels.genre,
-			poster: this.#checkIfHasRightProtocol(data.i18n_info_labels[0].art.poster),
-			description: data.i18n_info_labels[0].plot,
-			director: data.info_labels.director.slice(0, 1),
-			released: new Date(data.info_labels.premiered),
-			runtime: (Math.round(data.info_labels.duration / 60)) + " min",
+		id = helpers.getWithPrefix(id);
+		const imdbId = data.services.imdb
+		const label = data.info_labels
+		const translatedLabelSk = data.i18n_info_labels[0]
+		const translatedLabelEn = data.i18n_info_labels[2]
+		const ret = {
+			id: id,
+			type: type == "movie" ? "movie" : "series",
+			name: translatedLabelSk.title || translatedLabelEn.title,
+			description: translatedLabelSk.plot || translatedLabelEn.plot,
+			cast: data.cast.slice(0, 3).map(it => it.name),
+			director: label.director.slice(0, 1),
+			genres: label.genre,
+			imdbRating: data?.ratings?.overall?.rating,
+			runtime: (Math.round(label.duration / 60)) + " min",
+			releaseInfo: label.year,
+			logo: (imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null),
+			poster: (imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : this.#checkIfHasRightProtocol(translatedLabelSk.art.poster || translatedLabelSk.art.fanart)),
 		};
+		logger.log("formatMetaData", ret)
+		return ret
 	}
 
 	async #callInternal(name, id, type) {
