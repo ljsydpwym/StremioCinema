@@ -272,7 +272,7 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
 
     let sccId = helpers.getWithoutPrefix(id);
 
-    if (type === "series") {
+    if (type === "series" || type === "anime") {
         const data = await sc.media(sccId);
         const episodes = await sc.episodes(sccId);
         const meta = stremio.createMeta(data, type, id);
@@ -283,18 +283,6 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     if (type === "movie") {
         const data = await sc.media(sccId);
         const meta = stremio.createMeta(data, type, id);
-        return res.send({meta});
-    }
-
-    if (type === "anime") {
-        if (id.startsWith("tt")) {
-            sccId = (await sc.search(id, type)).hits.hits[0]._id;
-        }
-        logger.log("sccId", sccId);
-        const data = await sc.media(sccId);
-        const episodes = await sc.episodes(sccId);
-        const meta = stremio.createMeta(data, type, id);
-        meta.videos = episodes.map(it => stremio.formatEpisodeMetaData(it));
         return res.send({meta});
     }
 });
