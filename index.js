@@ -7,7 +7,7 @@ const SC = require('./sc.js')
 const qs = require('querystring')
 const env = require('./env.js')
 const cypher = require('./cypher.js')
-const {format, formatHeight, bytesToSize, getWithoutPrefix, startWithPrefix} = require('./helpers.js')
+const helpers = require('./helpers.js')
 
 const express = require('express')
 const cors = require('cors')
@@ -112,7 +112,7 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             mediaId = args.id;
             const isImdbId = mediaId.startsWith("tt")
             if (!isImdbId) {
-                scId = getWithoutPrefix(mediaId);
+                scId = helpers.getWithoutPrefix(mediaId);
             } else {
                 const scFiles = (await sc.search(mediaId, '*')).hits.hits
                 logger.log("scFiles", scFiles)
@@ -150,17 +150,17 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
         .map(it => {
                 const videos = Array.from(it.video)
                     .filter(it => it.height !== undefined)
-                    .map(it => formatHeight(it.height))
+                    .map(it => helpers.formatHeight(it.height))
                 const audios = [...new Set(Array.from(it.audio)
                     .filter(it => it.language !== undefined && it.language.length > 0)
-                    .map(it => format(it.language))
+                    .map(it => helpers.format(it.language))
                     .sort((a, b) => a.localeCompare(b)))];
                 const subtitles = [...new Set(Array.from(it.subtitles)
                     .filter(it => it.language !== undefined && it.language.length > 0)
-                    .map(it => format(it.language))
+                    .map(it => helpers.format(it.language))
                     .sort((a, b) => a.localeCompare(b)))];
 
-                const name = `Size: ${bytesToSize(it.size)}`
+                const name = `Size: ${helpers.bytesToSize(it.size)}`
                 const video = videos ? "Video: " + videos.join(",") : undefined
                 const audio = audios ? "Audio: " + audios.join(",") : undefined
                 const subtitle = subtitles ? "Subtitles: " + subtitles.join(",") : undefined
@@ -229,7 +229,7 @@ app.get(baseUrl + '/catalog/:type/:id/:extra?.json', async function (req, res) {
     const prefix = splitted[0];
     const realId = splitted[1];
     const sorting = splitted[2];
-    if (!startWithPrefix(id)) {
+    if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
@@ -266,11 +266,11 @@ app.get(baseUrl + '/meta/:type/:id.json', async function (req, res) {
     const {type, id} = req.params;
     logger.log("meta", req.params)
 
-    if (!startWithPrefix(id)) {
+    if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
 
-    let sccId = getWithoutPrefix(id);
+    let sccId = helpers.getWithoutPrefix(id);
 
     if (type === "series") {
         const data = await sc.media(sccId);
