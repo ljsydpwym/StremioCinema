@@ -31,7 +31,7 @@ function startWithPrefix(id) {
     return id.startsWith("scc")
 }
 function getWithPrefix(id) {
-    return `${PREFIX}${id}`
+    return id.startsWith(PREFIX) ? id : `${PREFIX}${id}`
 }
 
 function getWithoutPrefix(id) {
