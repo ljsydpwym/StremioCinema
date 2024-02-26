@@ -14,30 +14,36 @@ class Stremio {
 	formatMetaData(scMeta, type = "movie") {
 		const id = helpers.getWithPrefix(scMeta._id);
 		const imdbExists = scMeta._source.services.imdb != null;
+		const label = scMeta._source.info_labels
+		const translatedLabel = scMeta._source.i18n_info_labels[0]
 		return {
 			id: id,
 			type: type,
-			name: scMeta._source.i18n_info_labels[0].title,
-			description: scMeta._source.i18n_info_labels[0].plot,
+			name: translatedLabel.title,
+			description: translatedLabel.plot,
 			cast: scMeta._source.cast.slice(0, 3).map(it => it.name),
-			director: scMeta._source.info_labels.director.slice(0, 1),
-			genres: scMeta._source.info_labels.genre,
-			runtime: (Math.round(scMeta._source.info_labels.duration / 60)) + " min",
-			releaseInfo: scMeta._source.info_labels.year,
+			director: label.director.slice(0, 1),
+			genres: label.genre,
+			runtime: (Math.round(label.duration / 60)) + " min",
+			releaseInfo: label.year,
 			logo: (imdbExists ? `${this.META_HUB}/logo/medium/${id}/img` : null),
 			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart)),
 		};
 	}
 
 	formatEpisodeMetaData(scMeta) {
+		const label = scMeta._source.info_labels
+		const translatedLabel = scMeta._source.i18n_info_labels[0]
+		const premiere = new Date(label.premiered)
+		premiere.setHours(23, 59, 59)
 		return {
-			id: `${scMeta._source.root_parent}:${scMeta._source.info_labels.season}:${scMeta._source.info_labels.episode}`,
-			title: scMeta._source.i18n_info_labels[0].title ?? `Episode ${scMeta._source.info_labels.episode}`,
-			season: scMeta._source.info_labels.season,
-			episode: scMeta._source.info_labels.episode,
-			overview: scMeta._source.i18n_info_labels[0].plot,
-			thumbnail: this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart),
-			released: new Date(scMeta._source.info_labels.premiered),
+			id: `${scMeta._source.root_parent}:${label.season}:${label.episode}`,
+			title: translatedLabel.title ?? `Episode ${label.episode}`,
+			season: label.season,
+			episode: label.episode,
+			overview: translatedLabel.plot,
+			thumbnail: this.#checkIfHasRightProtocol(translatedLabel.art.poster || translatedLabel.art.fanart),
+			released: premiere,
 			available: scMeta._source.stream_info !== undefined,
 		}
 	}

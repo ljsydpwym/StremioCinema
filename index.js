@@ -61,7 +61,7 @@ app.get(baseUrl + '/log', function (req, res) {
     res.sendFile('log.txt', {root: __dirname})
 })
 
-const logger = new Logger("Main")
+const logger = new Logger("Main", true)
 
 const sc = new SC()
 const stremio = new Stremio()
@@ -87,9 +87,10 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
             logger.log("episode found")
         } else {
             try {
-                const scShow = await sc.search(mediaId, "*")
-                logger.log("scShow", scShow.hits.hits[0]);
-                scId = await sc.episode(scShow.hits.hits[0]._id, season, episode)
+                const searchResult = await sc.search(search, "tvshow")
+                const scShow = searchResult.hits.hits[0]
+                logger.log("scShow", scShow);
+                scId = await sc.episode(scShow._id, season, episode)
                 logger.log("episode found")
             } catch (e) {
                 logger.log("error", e)
@@ -100,10 +101,11 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                 logger.log("tmdbShow", tmdbShow)
 
                 const search = `${tmdbShow.name}`
-                const fallbackSearch = (await sc.search(search, "*")).hits.hits
-                const scShowId = fallbackSearch[0]._id
-                scId = await sc.episode(scShowId, season, episode)
-                logger.log("episode NOT found - fallback search", search)
+                const searchResult = await sc.search(search, "tvshow")
+                const scShow = searchResult.hits.hits[0]
+                logger.log("scShow tmdb fallback", scShow);
+                scId = await sc.episode(scShow._id, season, episode)
+                logger.log("episode found tmdb fallback search", search)
             }
         }
     } else {

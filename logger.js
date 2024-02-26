@@ -2,8 +2,9 @@ const env = require('./env.js')
 
 class Logger {
 
-    constructor(tag) {
+    constructor(tag, enabled) {
         this.tag = tag + " "
+        this.enabled = enabled
     }
 
     log(message, ...optionalParams) {
