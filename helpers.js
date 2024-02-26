@@ -36,7 +36,7 @@ const SCC_TYPE = {
     ANY: "*",
     MOVIE: "movie",
     SHOW: "tvshow",
-    ANIME: "tvshanimeow",
+    ANIME: "anime",
 }
 
 function startWithPrefix(id) {
