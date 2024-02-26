@@ -24,7 +24,7 @@ class Stremio {
 		const premiere = new Date(label.premiered)
 		premiere.setHours(23, 59, 59)
 		const ret = {
-			id: `${scMeta._source.root_parent}:${label.season}:${label.episode}`,
+			id: helpers.getWithPrefix(`${scMeta._source.root_parent}:${label.season}:${label.episode}`),
 			title: translatedLabel.title ?? `Episode ${label.episode}`,
 			season: label.season,
 			episode: label.episode,

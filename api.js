@@ -6,7 +6,7 @@ const logger = new Logger("CALL", false)
 async function call(method, url, data, options) {
     logger.log("Api request", arguments)
     const response = await needle(method, url, data, options)
-    // logger.log("Api response", response.body)
+    logger.log("Api response", response.body.toString())
     return response
 }
 
