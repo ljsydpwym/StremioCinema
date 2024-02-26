@@ -99,7 +99,6 @@ app.get(baseUrl + '/stream/:type/:id.json', async function (req, res) {
                 logger.log("tmdbInfo", tmdbInfo)
                 const tmdbShow = tmdbInfo.tv_results[0]
                 logger.log("tmdbShow", tmdbShow)
-
                 const search = `${tmdbShow.name}`
                 const searchResult = await sc.search(search, "tvshow")
                 const scShow = searchResult.hits.hits[0]
@@ -211,7 +210,7 @@ const formatSubtitles = (subtitles,webshare) =>{
 async function fetchAndFormatData(type, search, skip) {
     const scData = search ? await sc.search(search, type) : await sc.searchFrom(type, skip);
     const scMovies = scData.hits.hits;
-    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type === "movie" ? undefined : "series"));
+    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type));
 }
 
 

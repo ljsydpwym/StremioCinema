@@ -11,14 +11,14 @@ class Stremio {
 		return await this.#callInternal("meta", id, type)
 	}
 
-	formatMetaData(scMeta, type = "movie") {
+	formatMetaData(scMeta, type) {
 		const id = helpers.getWithPrefix(scMeta._id);
 		const imdbExists = scMeta._source.services.imdb != null;
 		const label = scMeta._source.info_labels
 		const translatedLabel = scMeta._source.i18n_info_labels[0]
 		return {
 			id: id,
-			type: type,
+			type: type == "movie" ? "movie" : "series",
 			name: translatedLabel.title,
 			description: translatedLabel.plot,
 			cast: scMeta._source.cast.slice(0, 3).map(it => it.name),
@@ -27,7 +27,7 @@ class Stremio {
 			runtime: (Math.round(label.duration / 60)) + " min",
 			releaseInfo: label.year,
 			logo: (imdbExists ? `${this.META_HUB}/logo/medium/${id}/img` : null),
-			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.poster) ?? this.#checkIfHasRightProtocol(scMeta._source.i18n_info_labels[0].art.fanart)),
+			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + scMeta._source.services.imdb + "/img" : this.#checkIfHasRightProtocol(translatedLabel.art.poster || translatedLabel.art.fanart)),
 		};
 	}
 
@@ -49,17 +49,19 @@ class Stremio {
 	}
 
 	createMeta(data, type, id) {
+		const label = data.info_labels
+		const translatedLabel = data.i18n_info_labels[0]
 		return {
 			id,
 			type,
-			background: data.i18n_info_labels[0].art.fanart,
-			name: data.i18n_info_labels[0].title,
-			genres: data.info_labels.genre,
-			poster: this.#checkIfHasRightProtocol(data.i18n_info_labels[0].art.poster),
-			description: data.i18n_info_labels[0].plot,
-			director: data.info_labels.director.slice(0, 1),
-			released: new Date(data.info_labels.premiered),
-			runtime: (Math.round(data.info_labels.duration / 60)) + " min",
+			background: translatedLabel.art.fanart,
+			name: translatedLabel.title,
+			genres: label.genre,
+			poster: this.#checkIfHasRightProtocol(translatedLabel.art.poster),
+			description: translatedLabel.plot,
+			director: label.director.slice(0, 1),
+			released: new Date(label.premiered),
+			runtime: (Math.round(label.duration / 60)) + " min",
 		};
 	}
 
