@@ -40,7 +40,7 @@ class Stremio {
 
 	createMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
-		const imdbExists = data.services.imdb != null;
+		const imdbId = data.services.imdb
 		const label = data.info_labels
 		const translatedLabelSk = data.i18n_info_labels[0]
 		const translatedLabelEn = data.i18n_info_labels[2]
@@ -55,8 +55,8 @@ class Stremio {
 			imdbRating: data?.ratings?.overall?.rating,
 			runtime: (Math.round(label.duration / 60)) + " min",
 			releaseInfo: label.year,
-			logo: (imdbExists ? `${this.META_HUB}/logo/medium/${id}/img` : null),
-			poster: (imdbExists ? `${this.META_HUB}/poster/medium/` + data.services.imdb + "/img" : this.#checkIfHasRightProtocol(translatedLabelSk.art.poster || translatedLabelSk.art.fanart)),
+			logo: (imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null),
+			poster: (imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : this.#checkIfHasRightProtocol(translatedLabelSk.art.poster || translatedLabelSk.art.fanart)),
 		};
 		logger.log("formatMetaData", ret)
 		return ret
