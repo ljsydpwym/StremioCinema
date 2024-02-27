@@ -14,12 +14,15 @@ function formatHeight(value) {
     return "8K"
 }
 
-function bytesToSize(bytes) {
-    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    if (bytes == 0) return '0 Byte';
-    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
-}
+function bytesToSize(bytes){
+    if      (bytes >= 1024*1024*1024) { bytes = (bytes / 1073741824).toFixed(2) + " GB"; }
+    else if (bytes >= 1024*1024)      { bytes = (bytes / 1048576).toFixed(0) + " MB"; }
+    else if (bytes >= 1024)           { bytes = (bytes / 1024).toFixed(0) + " KB"; }
+    else if (bytes > 1)               { bytes = bytes + " bytes"; }
+    else if (bytes == 1)              { bytes = bytes + " byte"; }
+    else                              { bytes = "0 bytes"; }
+    return bytes;
+  }
 
 function pad(value) {
     return value.length == 1 ? "0" + value : value
