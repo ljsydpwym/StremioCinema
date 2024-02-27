@@ -23,7 +23,7 @@ const stremio = new Stremio()
 const tmdb = new Tmdb()
 const webshare = new Webshare()
 
-const baseUrl = '/1/:token'
+const baseUrl = '/6/:token'
 
 app.get(baseUrl + '/manifest.json', manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', catalog)

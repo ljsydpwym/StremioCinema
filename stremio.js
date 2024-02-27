@@ -8,7 +8,8 @@ class Stremio {
 
 	constructor(){}
 
-	META_HUB = "https://images.metahub.space";
+	META_HUB_IMAGES = "https://images.metahub.space";
+	META_HUB_EPISODES = "https://episodes.metahub.space";
 
 	async meta(id, type) {
 		return await this.#callInternal("meta", id, type)
@@ -23,6 +24,7 @@ class Stremio {
 		const universalShowMeta = this.#createUniversalMeta(showScMeta)
 		const universalMeta = this.#createUniversalMeta(data)
 		const premiere = new Date(universalMeta.label.premiered)
+		const imdbLogo = universalShowMeta.imdbId ? `${this.META_HUB_EPISODES}/${universalShowMeta.imdbId}/${universalMeta.label.season}/${universalMeta.label.episode}/w780.jpg` : null
 		premiere.setHours(23, 59, 59)
 		const ret = {
 			id: helpers.getWithPrefix(`${data.root_parent}:${universalMeta.label.season}:${universalMeta.label.episode}`),
@@ -32,6 +34,7 @@ class Stremio {
 			overview: universalMeta.description,
 			imdbRating: universalMeta.imdbRating,
 			thumbnail: this.resolveImage(
+				imdbLogo,
 				universalMeta.translatedLabelEn?.art?.thumb,
 				universalMeta.translatedLabelSk?.art?.thumb,
 				universalMeta.translatedLabelEn?.art?.banner,
@@ -70,9 +73,9 @@ class Stremio {
 
 	#createUniversalMeta(data) {
 		const imdbId = data?.services?.imdb
-		const imdbLogo = imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null
-		const imdbPoster = imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : null
-		const imdbBackground = imdbId ? `${this.META_HUB}/background/medium/${imdbId}/img` : null
+		const imdbLogo = imdbId ? `${this.META_HUB_IMAGES}/logo/medium/${imdbId}/img` : null
+		const imdbPoster = imdbId ? `${this.META_HUB_IMAGES}/poster/medium/${imdbId}/img` : null
+		const imdbBackground = imdbId ? `${this.META_HUB_IMAGES}/background/medium/${imdbId}/img` : null
 		const label = data.info_labels
 		const translatedLabelSk = data.i18n_info_labels[0]
 		const translatedLabelEn = data.i18n_info_labels[2]
