@@ -23,7 +23,7 @@ const stremio = new Stremio()
 const tmdb = new Tmdb()
 const webshare = new Webshare()
 
-const baseUrl = '/1/:token'
+const baseUrl = '/5/:token'
 
 app.get(baseUrl + '/manifest.json', manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', catalog)
@@ -216,10 +216,10 @@ const formatSubtitles = (subtitles, webshare) => {
     })
 }
 
-async function fetchAndFormatData(type, search, skip) {
-    const scData = search ? await sc.search(search, type) : await sc.searchFrom(type, skip);
+async function fetchAndFormatData(sccType, stremioType, search, skip) {
+    const scData = search ? await sc.search(search, sccType) : await sc.searchFrom(sccType, skip);
     const scMovies = scData.hits.hits;
-    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, type));
+    return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, stremioType));
 }
 
 
@@ -237,7 +237,7 @@ async function catalog(req, res) {
     logger.log("catalog", req.params)
     const splitted = id.split("_");
     const prefix = splitted[0];
-    const realId = splitted[1];
+    const stremioType = splitted[1];
     const sorting = splitted[2];
     if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
@@ -248,25 +248,25 @@ async function catalog(req, res) {
         extra.skip = null;
     if (extra.search === undefined)
         extra.search = null;
-    let type;
-    switch (realId) {
+    let sccType;
+    switch (stremioType) {
         case helpers.STREMIO_TYPE.MOVIE:
-            type = helpers.SCC_TYPE.MOVIE;
+            sccType = helpers.SCC_TYPE.MOVIE;
             break;
         case helpers.STREMIO_TYPE.SHOW:
-            type = helpers.SCC_TYPE.SHOW;
+            sccType = helpers.SCC_TYPE.SHOW;
             break;
             case helpers.STREMIO_TYPE.ANIME:
-                type = helpers.SCC_TYPE.ANIME;
+                sccType = helpers.SCC_TYPE.ANIME;
             break;
         default:
-            type = undefined;
+            sccType = undefined;
     }
-    if (type === undefined) {
-        logger.log("for id " + realId + " type is undefined");
+    if (sccType === undefined) {
+        logger.log("for id " + stremioType + " type is undefined");
         return res.json({ metas: [] });
     }
-    const metas = await fetchAndFormatData(type, extra.search, extra.skip);
+    const metas = await fetchAndFormatData(sccType, stremioType, extra.search, extra.skip);
     logger.log("metas", metas)
     return res.json({ metas });
 }
@@ -285,7 +285,7 @@ async function meta(req, res) {
     const meta = stremio.createMeta(data, type, id);
     if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
         const episodes = await sc.episodes(sccId);
-        meta.videos = episodes.map(it => stremio.formatEpisodeMetaData(it));
+        meta.videos = episodes.map(it => stremio.formatEpisodeMetaData(data, it));
     }
     return res.send({ meta });
 }

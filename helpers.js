@@ -28,7 +28,7 @@ function pad(value) {
 const PREFIX = "scc_"
 
 const STREMIO_TYPE = {
-    MOVIE: "movies",
+    MOVIE: "movie",
     SHOW: "series",
     ANIME: "anime",
 }

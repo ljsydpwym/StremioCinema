@@ -18,21 +18,22 @@ class Stremio {
 		return this.createMeta(scMeta._source, type, scMeta._id)
 	}
 
-	formatEpisodeMetaData(scMeta) {
-		const label = scMeta._source.info_labels
-		const translatedLabel = scMeta._source.i18n_info_labels[0]
-		const premiere = new Date(label.premiered)
+	formatEpisodeMetaData(showScMeta, scMeta) {
+		const data = scMeta._source
+		const universalShowMeta = this.#createUniversalMeta(showScMeta)
+		const universalMeta = this.#createUniversalMeta(data)
+		const premiere = new Date(universalMeta.label.premiered)
 		premiere.setHours(23, 59, 59)
 		const ret = {
-			id: helpers.getWithPrefix(`${scMeta._source.root_parent}:${label.season}:${label.episode}`),
-			title: translatedLabel.title ?? `Episode ${label.episode}`,
-			season: label.season,
-			episode: label.episode,
-			overview: translatedLabel.plot,
-			imdbRating: scMeta._source?.ratings?.overall?.rating,
-			thumbnail: this.#checkIfHasRightProtocol(translatedLabel.art.poster || translatedLabel.art.fanart),
+			id: helpers.getWithPrefix(`${data.root_parent}:${universalMeta.label.season}:${universalMeta.label.episode}`),
+			title: universalMeta.name || `Episode ${universalMeta.label.episode}`,
+			season: universalMeta.label.season,
+			episode: universalMeta.label.episode,
+			overview: universalMeta.description,
+			imdbRating: universalMeta.imdbRating,
+			thumbnail: universalMeta.poster || universalShowMeta.poster,
 			released: premiere,
-			available: scMeta._source.stream_info !== undefined,
+			available: data.stream_info !== undefined,
 		}
 		logger.log("formatEpisodeMetaData", ret)
 		return ret
@@ -40,25 +41,46 @@ class Stremio {
 
 	createMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
-		const imdbId = data.services.imdb
+		const universalMeta = this.#createUniversalMeta(data)
+		const ret = {
+			id: id,
+			type: type,
+			name: universalMeta.name,
+			description: universalMeta.description,
+			cast: data.cast.slice(0, 3).map(it => it.name),
+			director: universalMeta.label.director.slice(0, 1),
+			genres: universalMeta.label.genre,
+			imdbRating: universalMeta.imdbRating,
+			runtime: universalMeta.runtime,
+			releaseInfo: universalMeta.label.year,
+			logo: universalMeta.imdbLogo,
+			poster: universalMeta.poster,
+		};
+		logger.log("formatMetaData", ret)
+		return ret
+	}
+
+	#createUniversalMeta(data) {
+		const imdbId = data?.services?.imdb
+		const imdbLogo = imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null
+		const imdbPoster = imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : null
 		const label = data.info_labels
 		const translatedLabelSk = data.i18n_info_labels[0]
 		const translatedLabelEn = data.i18n_info_labels[2]
 		const ret = {
-			id: id,
-			type: type == "movie" ? "movie" : "series",
+			imdbId: imdbId,
+			imdbLogo: imdbLogo,
+			imdbPoster: imdbPoster,
+			label: label,
+			translatedLabelSk: translatedLabelSk,
+			translatedLabelEn: translatedLabelEn,
 			name: translatedLabelSk.title || translatedLabelEn.title,
 			description: translatedLabelSk.plot || translatedLabelEn.plot,
-			cast: data.cast.slice(0, 3).map(it => it.name),
-			director: label.director.slice(0, 1),
-			genres: label.genre,
 			imdbRating: data?.ratings?.overall?.rating,
 			runtime: (Math.round(label.duration / 60)) + " min",
-			releaseInfo: label.year,
-			logo: (imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null),
-			poster: (imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : this.#checkIfHasRightProtocol(translatedLabelSk.art.poster || translatedLabelSk.art.fanart)),
+			poster: this.#fixProtocol(translatedLabelSk.art?.poster || imdbPoster || translatedLabelSk.art?.fanart)
 		};
-		logger.log("formatMetaData", ret)
+		logger.log("createUniversalMeta", ret)
 		return ret
 	}
 
@@ -66,7 +88,7 @@ class Stremio {
 		return (await call('get', `https://v3-cinemeta.strem.io/${name}/${type}/${id}.json`)).body
 	}
 
-	#checkIfHasRightProtocol(url) {
+	#fixProtocol(url) {
 		if (url === undefined || url === null) {
 			return null;
 		}
