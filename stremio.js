@@ -32,7 +32,7 @@ class Stremio {
 			season: universalMeta.label.season,
 			episode: universalMeta.label.episode,
 			overview: universalMeta.description,
-			imdbRating: universalMeta.imdbRating,
+			imdbRating: universalShowMeta.imdbRating,
 			thumbnail: this.resolveImage(
 				imdbLogo,
 				universalMeta.translatedLabelEn?.art?.thumb,
