@@ -32,7 +32,6 @@ class Stremio {
 			season: universalMeta.label.season,
 			episode: universalMeta.label.episode,
 			overview: universalMeta.description,
-			imdbRating: universalShowMeta.imdbRating,
 			thumbnail: this.resolveImage(
 				imdbLogo,
 				universalMeta.translatedLabelEn?.art?.thumb,
@@ -43,7 +42,6 @@ class Stremio {
 			),
 			released: premiere,
 			available: data.stream_info !== undefined,
-			background: universalShowMeta.imdbBackground,
 		}
 		logger.log("formatEpisodeMetaData", ret)
 		return ret
