@@ -31,9 +31,16 @@ class Stremio {
 			episode: universalMeta.label.episode,
 			overview: universalMeta.description,
 			imdbRating: universalMeta.imdbRating,
-			thumbnail: universalMeta.poster || universalShowMeta.poster,
+			thumbnail: this.resolveImage(
+				universalMeta.translatedLabelEn?.art?.thumb,
+				universalMeta.translatedLabelSk?.art?.thumb,
+				universalMeta.translatedLabelEn?.art?.banner,
+				universalMeta.translatedLabelSk?.art?.banner,
+				universalShowMeta.poster,
+			),
 			released: premiere,
 			available: data.stream_info !== undefined,
+			background: universalShowMeta.imdbBackground,
 		}
 		logger.log("formatEpisodeMetaData", ret)
 		return ret
@@ -55,6 +62,7 @@ class Stremio {
 			releaseInfo: universalMeta.label.year,
 			logo: universalMeta.imdbLogo,
 			poster: universalMeta.poster,
+			background: universalMeta.imdbBackground,
 		};
 		logger.log("formatMetaData", ret)
 		return ret
@@ -64,6 +72,7 @@ class Stremio {
 		const imdbId = data?.services?.imdb
 		const imdbLogo = imdbId ? `${this.META_HUB}/logo/medium/${imdbId}/img` : null
 		const imdbPoster = imdbId ? `${this.META_HUB}/poster/medium/${imdbId}/img` : null
+		const imdbBackground = imdbId ? `${this.META_HUB}/background/medium/${imdbId}/img` : null
 		const label = data.info_labels
 		const translatedLabelSk = data.i18n_info_labels[0]
 		const translatedLabelEn = data.i18n_info_labels[2]
@@ -71,6 +80,7 @@ class Stremio {
 			imdbId: imdbId,
 			imdbLogo: imdbLogo,
 			imdbPoster: imdbPoster,
+			imdbBackground: imdbBackground,
 			label: label,
 			translatedLabelSk: translatedLabelSk,
 			translatedLabelEn: translatedLabelEn,
@@ -78,10 +88,24 @@ class Stremio {
 			description: translatedLabelSk.plot || translatedLabelEn.plot,
 			imdbRating: data?.ratings?.overall?.rating,
 			runtime: (Math.round(label.duration / 60)) + " min",
-			poster: this.#fixProtocol(translatedLabelSk.art?.poster || imdbPoster || translatedLabelSk.art?.fanart)
+			poster: this.resolveImage(
+				translatedLabelSk.art?.poster, 
+				imdbPoster, 
+				translatedLabelSk.art?.fanart
+			),
 		};
 		logger.log("createUniversalMeta", ret)
 		return ret
+	}
+
+	resolveImage() {
+		for(const url of arguments){
+			const fixedUrl = this.#fixProtocol(url)
+			if(fixedUrl){
+				return fixedUrl
+			}
+		}
+		return undefined
 	}
 
 	async #callInternal(name, id, type) {

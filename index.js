@@ -23,7 +23,7 @@ const stremio = new Stremio()
 const tmdb = new Tmdb()
 const webshare = new Webshare()
 
-const baseUrl = '/5/:token'
+const baseUrl = '/1/:token'
 
 app.get(baseUrl + '/manifest.json', manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', catalog)
@@ -52,14 +52,16 @@ function manifesf(req, res) {
             extra: [
                 { name: "search", isRequired: false },
             ]
-        }, {
+        },
+        {
             type: helpers.STREMIO_TYPE.SHOW,
             id: 'scc_series_news',
             name: 'SCC - series',
             extra: [
                 { name: "search", isRequired: false },
             ]
-        }, {
+        },
+        {
             type: helpers.STREMIO_TYPE.ANIME,
             id: "scc_anime_news",
             name: "SCC - anime",
@@ -72,7 +74,7 @@ function manifesf(req, res) {
     })
 }
 
-async function streams(req, res){
+async function streams(req, res) {
     const { type, id, token } = req.params
     logger.log("defineStreamHandler", req.params)
     const idParts = id.split(":")
@@ -222,8 +224,6 @@ async function fetchAndFormatData(sccType, stremioType, search, skip) {
     return Object.entries(scMovies).map(([_, data]) => stremio.formatMetaData(data, stremioType));
 }
 
-
-
 async function url(req, res) {
     logger.log("url", req.params)
     const { id } = req.params;
@@ -233,12 +233,9 @@ async function url(req, res) {
 }
 
 async function catalog(req, res) {
-    const { id } = req.params;
+    const { id, type } = req.params;
     logger.log("catalog", req.params)
-    const splitted = id.split("_");
-    const prefix = splitted[0];
-    const stremioType = splitted[1];
-    const sorting = splitted[2];
+    const stremioType = type
     if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
@@ -256,8 +253,8 @@ async function catalog(req, res) {
         case helpers.STREMIO_TYPE.SHOW:
             sccType = helpers.SCC_TYPE.SHOW;
             break;
-            case helpers.STREMIO_TYPE.ANIME:
-                sccType = helpers.SCC_TYPE.ANIME;
+        case helpers.STREMIO_TYPE.ANIME:
+            sccType = helpers.SCC_TYPE.ANIME;
             break;
         default:
             sccType = undefined;
