@@ -201,7 +201,7 @@ async function getStreams(files, req) {
         const url = `${req.protocol}://${req.get('host')}/stream/url/${encrypted}.json`
         return {
             url: url,
-            name: "Stremuj Cinema",
+            name: env.PLUGIN_NAME,
             description: it.name,
             subtitles,
             behaviorHints: {
@@ -264,7 +264,7 @@ async function catalog(req, res) {
     const scData = extra.search ? await scc.search(extra.search, sccType) : await scc.searchFrom(sccType, extra.skip);
     const scItems = scData.hits.hits;
     const metas = await Promise.all(Object.entries(scItems).map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType)))
-    logger.log("metas", metas)
+    logger.log("metas length", metas.length)
     return res.json({ metas });
 }
 

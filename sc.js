@@ -12,6 +12,7 @@ class SCC {
 			type: type,
 			order: "desc",
 			sort: "score",
+			size: 10,
 			value: encodeURIComponent(value),
 		}))
 	}
@@ -22,6 +23,7 @@ class SCC {
 			order: "desc",
 			sort: "dateAdded",
 			days: "365",
+			size: 10,
 			from: from,
 		}))
 	}

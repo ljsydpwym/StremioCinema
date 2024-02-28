@@ -19,18 +19,24 @@ class SccMeta {
 
 	async cinemataIfPossible(scMeta, type, alternative) {
 		logger.log("cinemataIfPossible", type)
-		const imdbId = scMeta?.services?.imdb
 		const tmdbId = scMeta?.services?.tmdb
+		const imdbId = scMeta?.services?.imdb
 		const sccMeta = alternative()
-		var alternativeMeta = sccMeta
-		if (imdbId) {
-			logger.log("using Cinemata meta")
-			alternativeMeta = await Addons.metaCinemata(type, imdbId)
-		} else if(tmdbId) {
+		var alternativeMeta
+		if(!alternativeMeta && tmdbId) {
 			logger.log("using TMDB meta")
 			alternativeMeta = await Addons.metaTmdb(type, tmdbId)
 		}
-		alternativeMeta.id = scMeta.id
+		if (!alternativeMeta && imdbId) {
+			logger.log("using Cinemata meta")
+			alternativeMeta = await Addons.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
+		} 
+		if(!alternativeMeta){
+			alternativeMeta = sccMeta
+		}
+		alternativeMeta.id = sccMeta.id
+		alternativeMeta.name = sccMeta.name ? sccMeta.name : alternativeMeta.name
+		alternativeMeta.description = sccMeta.description ? sccMeta.description : alternativeMeta.description
 		logger.log("final meta", alternativeMeta)
 		return alternativeMeta
 	}
