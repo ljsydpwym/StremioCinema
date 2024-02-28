@@ -1,7 +1,6 @@
 const helpers = require('./helpers.js');
 const call = require('./api.js');
 const Logger = require('./logger.js');
-const Addons = require('./Addons.js');
 
 const logger = new Logger("Stremio", true)
 
@@ -24,11 +23,11 @@ class SccMeta {
 		var alternativeMeta
 		if(!alternativeMeta && tmdbId) {
 			logger.log("using TMDB meta")
-			alternativeMeta = await Addons.metaTmdb(type, tmdbId)
+			alternativeMeta = await helpers.metaTmdb(type, tmdbId)
 		}
 		if (!alternativeMeta && imdbId) {
 			logger.log("using Cinemata meta")
-			alternativeMeta = await Addons.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
+			alternativeMeta = await helpers.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
 		} 
 		if(!alternativeMeta){
 			alternativeMeta = sccMeta
