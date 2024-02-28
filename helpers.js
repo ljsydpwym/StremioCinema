@@ -14,6 +14,31 @@ function formatHeight(value) {
     return "8K"
 }
 
+const HDR_FORMAT_HDR_1 = "SMPTE ST 2086"
+const HDR_FORMAT_HDR_2 = "SMPTE ST 2094"
+const HDR_FORMAT_DV = "Dolby Vision"
+
+function is_hdr_value_dv(hdr){
+    return hdr && (hdr || hdr?.includes(HDR_FORMAT_DV))
+}
+
+function is_hdr_value_dv_hdr(hdr){
+    return hdr && (hdr || hdr?.includes(HDR_FORMAT_HDR_1) || hdr?.includes(HDR_FORMAT_HDR_2))
+}
+
+function formatHDR(hdrString, is3D) {
+    const isDV = is_hdr_value_dv(hdrString)
+    const isHDR = is_hdr_value_dv_hdr(hdrString)
+    var output = ""
+    if(isDV)
+        output += "-DV"    
+    if(isHDR)
+        output += "-HDR"    
+    if(is3D)
+        output += "-3D"
+    return output
+}
+
 function bytesToSize(bytes){
     if      (bytes >= 1024*1024*1024) { bytes = (bytes / 1073741824).toFixed(2) + " GB"; }
     else if (bytes >= 1024*1024)      { bytes = (bytes / 1048576).toFixed(0) + " MB"; }
@@ -66,6 +91,7 @@ module.exports = {
     getWithPrefix,
     getWithoutPrefix,
     queries,
+    formatHDR,
     PREFIX,
     STREMIO_TYPE,
     SCC_TYPE

@@ -6,6 +6,7 @@ const PLUGIN_NAME = process.env.PLUGIN_NAME || "StremioCinema"
 const DEBUG = process.env.DEBUG || false
 const PORT = process.env.PORT || 4000
 const SENTRY_DSN = process.env.SENTRY_DSN
+const WS_TOKEN = process.env.WS_TOKEN || ":token"
 
 module.exports = {
     SC_TOKEN,
@@ -15,5 +16,6 @@ module.exports = {
     PLUGIN_NAME,
     DEBUG,
     PORT,
-    SENTRY_DSN
+    SENTRY_DSN,
+    WS_TOKEN
 }

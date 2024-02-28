@@ -3,7 +3,7 @@ const call = require('./api.js')
 const helpers = require('./helpers.js')
 const env = require('./env.js')
 
-class SC {
+class SCC {
 
 	constructor(){}
 	
@@ -91,4 +91,4 @@ class SC {
 
 }
 
-module.exports = SC
+module.exports = SCC
