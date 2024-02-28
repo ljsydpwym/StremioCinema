@@ -22,17 +22,17 @@ class SccMeta {
 		const imdbId = scMeta?.services?.imdb
 		const sccMeta = alternative()
 		var alternativeMeta
-		// if(!alternativeMeta && tmdbId) {
-		// 	logger.log("using TMDB meta")
-		// 	alternativeMeta = await Addons.metaTmdb(type, tmdbId)
-		// }
-		// if (!alternativeMeta && imdbId) {
-		// 	logger.log("using Cinemata meta")
-		// 	alternativeMeta = await Addons.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
-		// } 
-		// if(!alternativeMeta){
-		// 	alternativeMeta = sccMeta
-		// }
+		if(!alternativeMeta && tmdbId) {
+			logger.log("using TMDB meta")
+			alternativeMeta = await Addons.metaTmdb(type, tmdbId)
+		}
+		if (!alternativeMeta && imdbId) {
+			logger.log("using Cinemata meta")
+			alternativeMeta = await Addons.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
+		} 
+		if(!alternativeMeta){
+			alternativeMeta = sccMeta
+		}
 		alternativeMeta.id = sccMeta.id
 		alternativeMeta.name = sccMeta.name ? sccMeta.name : alternativeMeta.name
 		alternativeMeta.description = sccMeta.description ? sccMeta.description : alternativeMeta.description
