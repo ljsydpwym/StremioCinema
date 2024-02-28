@@ -66,8 +66,8 @@
     <form>
       <input type="text" name="username" id="name" placeholder="Username" required>
       <input type="password" name="password" id="password" placeholder="Password" required>
-      <input type="submit" id="generate" value="Login">
-      <div id="output"></div>
+      <input style="width: 100%;" type="submit" id="generate" value="Login">
+      <p id="output"></p>
     </form>
   </div>
 
@@ -81,11 +81,14 @@
       console.log("base64", base64)
       const urlEncoded = encodeURIComponent(base64)
       console.log("urlEncoded", urlEncoded)
-      const link = `https://stremio-cinema.vercel.app/1/${urlEncoded}/manifest.json`
+      const link = `stremio://stremio-cinema.vercel.app/1/${urlEncoded}/manifest.json`
+      navigator.clipboard.writeText(link)
       document.getElementById("output").innerHTML = `
-    <div>Enter this link into Stremio -> Addons -> Search addon box</div>
-    <div>${link}</div>
-    `
+      <div>Addon link copied to clipboard!</div>
+      <div>Click on the link OR paste it into Stremio -> Addons -> Search addon box</div>
+      <br>
+      <div><a style="word-wrap: break-word;" href="${link}">${link}</a></div>
+      `
     }
 
     document.getElementById("generate").addEventListener("click", generate)
