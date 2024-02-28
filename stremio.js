@@ -2,7 +2,6 @@ const helpers = require('./helpers.js');
 const call = require('./api.js');
 const Logger = require('./logger.js');
 const Addons = require('./addons.js');
-const nameToImdb = require("name-to-imdb");
 
 const logger = new Logger("Stremio", true)
 
