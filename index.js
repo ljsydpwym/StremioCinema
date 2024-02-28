@@ -177,10 +177,10 @@ async function getWebshareMeta(scStreams) {
                 .map(it => helpers.format(it.language))
                 .sort((a, b) => a.localeCompare(b)))];
 
-            const name = `Size: ${helpers.bytesToSize(it.size)}`
-            const video = `Video: ${videoHeight}${videoHDR}`
-            const audio = audios ? "Audio: " + audios.join(",") : undefined
-            const subtitle = subtitles ? "Subtitles: " + subtitles.join(",") : undefined
+            const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)}`
+            const video = `📹\tVideo:\t\t${videoHeight}${videoHDR}`
+            const audio = audios ? "🔊\tAudio:\t\t" + audios.join(",") : undefined
+            const subtitle = subtitles ? "💬\tSubtitles:\t" + subtitles.join(",") : undefined
             return {
                 ident: it.ident,
                 original: it,
