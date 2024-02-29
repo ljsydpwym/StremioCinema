@@ -11,11 +11,19 @@ const helpers = require('./helpers.js')
 const sentry = require('./sentry.js')
 
 const express = require('express')
-const apicache = require('apicache');
+const apicache = require('./cache/apicache.js');
 const cors = require('cors')
 const app = express()
 
 let cache = apicache.middleware;
+apicache.options({
+    appendKey: (req, res) => {
+        req.apicacheGroup = "cached"
+        return req.url.split("/").slice(3).toString()
+    },
+    debug: env.DEBUG,
+    enabled: env.CACHE,
+})
 
 const path = require('path');
 
@@ -32,16 +40,27 @@ const webshare = new Webshare()
 
 const baseUrl = '/1/:token'
 
+const onlyStatus200 = (req, res) => res.statusCode === 200
+
+function caching() {
+    return cache("30 minutes", onlyStatus200)
+}
+
 app.get(baseUrl + '/manifest.json', manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', caching(), catalog)
 app.get(baseUrl + '/meta/:type/:id.json', caching(), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
 app.get('/', index)
-
-function caching() {
-    return env.DEBUG ? cache("1 second") : cache("30 minutes")
-}
+app.get('/api/cache/performance', (req, res) => {
+    res.json(apicache.getPerformance())
+})
+app.get('/api/cache/index', (req, res) => {
+    res.json(apicache.getIndex())
+})
+app.get('/api/cache/clear/:target?', (req, res) => {
+    res.json(apicache.clear(req.params.target))
+})
 
 function manifesf(req, res) {
     res.setHeader('Cache-Control', 'max-age=86400') // one day
@@ -121,7 +140,7 @@ async function catalog(req, res) {
     const scItems = scData.hits.hits;
     const metas = await Promise.all(
         Object.entries(scItems)
-            .filter(([_, it]) =>{
+            .filter(([_, it]) => {
                 const genres = it._source.info_labels.genre
                 const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
                 return !isExplicit

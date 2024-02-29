@@ -4,6 +4,7 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
 const PLUGIN_ID = process.env.PLUGIN_ID || "com.ljsydpwym"
 const PLUGIN_NAME = process.env.PLUGIN_NAME || "Stremio Cinema"
 const DEBUG = process.env.DEBUG || false
+const CACHE = process.env.CACHE || true
 const PORT = process.env.PORT || 4000
 const SENTRY_DSN = process.env.SENTRY_DSN
 const WS_TOKEN = process.env.WS_TOKEN || ":token"
@@ -17,5 +18,6 @@ module.exports = {
     DEBUG,
     PORT,
     SENTRY_DSN,
-    WS_TOKEN
+    WS_TOKEN,
+    CACHE
 }
