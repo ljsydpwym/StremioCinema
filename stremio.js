@@ -62,33 +62,31 @@ class SccMeta {
 		})
 	}
 
-	async createMetaEpisode(showScMeta, scMeta) {
-		return await this.cinemataIfPossible(scMeta._source, helpers.STREMIO_TYPE.SHOW, () => {
-			const data = scMeta._source
-			const universalShowMeta = this.#createUniversalMeta(showScMeta)
-			const universalMeta = this.#createUniversalMeta(data)
-			const premiere = new Date(universalMeta.label.premiered)
-			const imdbLogo = universalShowMeta.imdbId ? `${this.META_HUB_EPISODES}/${universalShowMeta.imdbId}/${universalMeta.label.season}/${universalMeta.label.episode}/w780.jpg` : null
-			premiere.setHours(23, 59, 59)
-			const ret = {
-				id: helpers.getWithPrefix(`${data.root_parent}:${universalMeta.label.season}:${universalMeta.label.episode}`),
-				title: universalMeta.name || `Episode ${universalMeta.label.episode}`,
-				season: universalMeta.label.season,
-				episode: universalMeta.label.episode,
-				overview: universalMeta.description,
-				thumbnail: this.resolveImage(
-					imdbLogo,
-					universalMeta.translatedLabelEn?.art?.thumb,
-					universalMeta.translatedLabelSk?.art?.thumb,
-					universalMeta.translatedLabelEn?.art?.banner,
-					universalMeta.translatedLabelSk?.art?.banner,
-					universalShowMeta.poster,
-				),
-				released: premiere,
-				available: data.stream_info !== undefined,
-			}
-			return ret
-		})
+	async createMetaEpisode(stremioShowMeta, showScMeta, scMeta) {
+		const data = scMeta._source
+		const universalShowMeta = this.#createUniversalMeta(showScMeta)
+		const universalMeta = this.#createUniversalMeta(data)
+		const premiere = new Date(universalMeta.label.premiered)
+		const imdbLogo = universalShowMeta.imdbId ? `${this.META_HUB_EPISODES}/${universalShowMeta.imdbId}/${universalMeta.label.season}/${universalMeta.label.episode}/w780.jpg` : null
+		premiere.setHours(23, 59, 59)
+		const ret = {
+			id: helpers.getWithPrefix(`${data.root_parent}:${universalMeta.label.season}:${universalMeta.label.episode}`),
+			title: universalMeta.name || `Episode ${universalMeta.label.episode}`,
+			season: universalMeta.label.season,
+			episode: universalMeta.label.episode,
+			overview: universalMeta.description,
+			thumbnail: this.resolveImage(
+				imdbLogo,
+				universalMeta.translatedLabelEn?.art?.thumb,
+				universalMeta.translatedLabelSk?.art?.thumb,
+				universalMeta.translatedLabelEn?.art?.banner,
+				universalMeta.translatedLabelSk?.art?.banner,
+				universalShowMeta.poster,
+			),
+			released: premiere,
+			available: data.stream_info !== undefined,
+		}
+		return ret
 	}
 
 	#createUniversalMeta(data) {

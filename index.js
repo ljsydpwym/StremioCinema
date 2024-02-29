@@ -11,8 +11,12 @@ const helpers = require('./helpers.js')
 const sentry = require('./sentry.js')
 
 const express = require('express')
+const apicache = require('apicache');
 const cors = require('cors')
 const app = express()
+
+let cache = apicache.middleware;
+
 const path = require('path');
 
 sentry.init(app)
@@ -29,8 +33,8 @@ const webshare = new Webshare()
 const baseUrl = '/1/:token'
 
 app.get(baseUrl + '/manifest.json', manifesf)
-app.get(baseUrl + '/catalog/:type/:id/:extra?.json', catalog)
-app.get(baseUrl + '/meta/:type/:id.json', meta);
+app.get(baseUrl + '/catalog/:type/:id/:extra?.json', cache("30 minutes"), catalog)
+app.get(baseUrl + '/meta/:type/:id.json', cache("30 minutes"), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
 app.get('/', index)
@@ -75,6 +79,66 @@ function manifesf(req, res) {
         ],
         types: [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME],
     })
+}
+
+
+async function catalog(req, res) {
+    const { id, type } = req.params;
+    logger.log("catalog", req.params)
+    const stremioType = type
+    if (!helpers.startWithPrefix(id)) {
+        return res.status(404).send("Not found");
+    }
+
+    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null };
+    if (extra.skip === undefined)
+        extra.skip = null;
+    if (extra.search === undefined)
+        extra.search = null;
+    let sccType;
+    switch (stremioType) {
+        case helpers.STREMIO_TYPE.MOVIE:
+            sccType = helpers.SCC_TYPE.MOVIE;
+            break;
+        case helpers.STREMIO_TYPE.SHOW:
+            sccType = helpers.SCC_TYPE.SHOW;
+            break;
+        case helpers.STREMIO_TYPE.ANIME:
+            sccType = helpers.SCC_TYPE.ANIME;
+            break;
+        default:
+            sccType = undefined;
+    }
+    if (sccType === undefined) {
+        logger.log("for id " + stremioType + " type is undefined");
+        return res.json({ metas: [] });
+    }
+    const scData = extra.search ? await scc.search(extra.search, sccType) : await scc.searchFrom(sccType, extra.skip);
+    const scItems = scData.hits.hits;
+    const metas = await Promise.all(Object.entries(scItems).map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType)))
+    logger.log("metas length", metas.length)
+    return res.json({ metas });
+}
+
+async function meta(req, res) {
+    const { type, id } = req.params;
+    logger.log("meta", req.params)
+
+    if (!helpers.startWithPrefix(id)) {
+        return res.status(404).send("Not found");
+    }
+
+    let sccId = helpers.getWithoutPrefix(id);
+
+    const data = await scc.media(sccId);
+    const meta = await sccMeta.createMeta(data, type, id);
+    if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
+        if(!meta.videos){
+            const episodes = await scc.episodes(sccId);
+            meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(meta, data, it)))
+        }
+    }
+    return res.send({ meta });
 }
 
 async function streams(req, res) {
@@ -228,63 +292,6 @@ async function url(req, res) {
     const decrypted = cypher.decrypt(id)
     logger.log("decrypted", decrypted)
     res.redirect(decrypted)
-}
-
-async function catalog(req, res) {
-    const { id, type } = req.params;
-    logger.log("catalog", req.params)
-    const stremioType = type
-    if (!helpers.startWithPrefix(id)) {
-        return res.status(404).send("Not found");
-    }
-
-    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null };
-    if (extra.skip === undefined)
-        extra.skip = null;
-    if (extra.search === undefined)
-        extra.search = null;
-    let sccType;
-    switch (stremioType) {
-        case helpers.STREMIO_TYPE.MOVIE:
-            sccType = helpers.SCC_TYPE.MOVIE;
-            break;
-        case helpers.STREMIO_TYPE.SHOW:
-            sccType = helpers.SCC_TYPE.SHOW;
-            break;
-        case helpers.STREMIO_TYPE.ANIME:
-            sccType = helpers.SCC_TYPE.ANIME;
-            break;
-        default:
-            sccType = undefined;
-    }
-    if (sccType === undefined) {
-        logger.log("for id " + stremioType + " type is undefined");
-        return res.json({ metas: [] });
-    }
-    const scData = extra.search ? await scc.search(extra.search, sccType) : await scc.searchFrom(sccType, extra.skip);
-    const scItems = scData.hits.hits;
-    const metas = await Promise.all(Object.entries(scItems).map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType)))
-    logger.log("metas length", metas.length)
-    return res.json({ metas });
-}
-
-async function meta(req, res) {
-    const { type, id } = req.params;
-    logger.log("meta", req.params)
-
-    if (!helpers.startWithPrefix(id)) {
-        return res.status(404).send("Not found");
-    }
-
-    let sccId = helpers.getWithoutPrefix(id);
-
-    const data = await scc.media(sccId);
-    const meta = await sccMeta.createMeta(data, type, id);
-    if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
-        const episodes = await scc.episodes(sccId);
-        meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(data, it)))
-    }
-    return res.send({ meta });
 }
 
 function index(req, res) {
