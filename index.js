@@ -198,8 +198,8 @@ async function getShow(mediaId, season, episode) {
                 logger.log("fallbacking with error", e)
                 const tmdbShow = (await tmdb.find(mediaId)).tv_results[0]
                 logger.log("tmdbShow", tmdbShow)
-                const search = tmdbShow.name
-                const scShow = (await scc.search(search, helpers.SCC_TYPE.SHOW)).hits.hits[0]
+                const search = tmdbShow.id
+                const scShow = (await scc.service(search, helpers.SCC_TYPE.SHOW)).hits.hits[0]
                 logger.log("scShow tmdb fallback", scShow);
                 scId = (await scc.episode(scShow._id, season, episode))
                 logger.log("episode found tmdb fallback search", search)
@@ -228,8 +228,8 @@ async function getMovie(mediaId) {
                 logger.log("tmdbInfo", tmdbInfo)
                 const tmdbMovie = tmdbInfo.movie_results[0]
                 logger.log("tmdbMovie", tmdbMovie)
-                const search = tmdbMovie.title
-                const scMovie = (await scc.search(search, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
+                const search = tmdbMovie.id
+                const scMovie = (await scc.service(search, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
                 scId = scMovie._id
                 logger.log("movie not found - fallback search", search)
             }
