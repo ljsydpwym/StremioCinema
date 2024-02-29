@@ -43,7 +43,7 @@ const baseUrl = '/1/:token'
 const onlyStatus200 = (req, res) => res.statusCode === 200
 
 function caching() {
-    return cache("30 minutes", onlyStatus200)
+    return cache("200 minutes", onlyStatus200)
 }
 
 app.get(baseUrl + '/manifest.json', manifesf)
