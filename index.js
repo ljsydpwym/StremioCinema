@@ -33,11 +33,15 @@ const webshare = new Webshare()
 const baseUrl = '/1/:token'
 
 app.get(baseUrl + '/manifest.json', manifesf)
-app.get(baseUrl + '/catalog/:type/:id/:extra?.json', cache("30 minutes"), catalog)
-app.get(baseUrl + '/meta/:type/:id.json', cache("30 minutes"), meta);
+app.get(baseUrl + '/catalog/:type/:id/:extra?.json', caching(), catalog)
+app.get(baseUrl + '/meta/:type/:id.json', caching(), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
 app.get('/', index)
+
+function caching(){
+    return env.DEBUG ? cache("1 second") : cache("30 minutes")
+}
 
 function manifesf(req, res) {
     res.setHeader('Cache-Control', 'max-age=86400') // one day
@@ -133,10 +137,13 @@ async function meta(req, res) {
     const data = await scc.media(sccId);
     const meta = await sccMeta.createMeta(data, type, id);
     if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
+        const episodes = await scc.episodes(sccId);
         if(!meta.videos){
-            const episodes = await scc.episodes(sccId);
-            meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(meta, data, it)))
+            meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(data, it)))
+        }else{
+            meta.videos = sccMeta.insertIds(meta, data)
         }
+        meta.type = helpers.STREMIO_TYPE.SHOW
     }
     return res.send({ meta });
 }

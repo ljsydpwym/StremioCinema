@@ -15,15 +15,23 @@ class SccMeta {
 		return await this.createMeta(scMeta._source, type, scMeta._id)
 	}
 
-	async cinemataIfPossible(scMeta, type, alternative) {
-		logger.log("cinemataIfPossible", type)
-		const tmdbId = scMeta?.services?.tmdb
-		const imdbId = scMeta?.services?.imdb
+	async cinemataIfPossible(scRaw, type, alternative) {
+		const tmdbId = scRaw?.services?.tmdb
+		const imdbId = scRaw?.services?.imdb
 		const sccMeta = alternative()
+		logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
 		var alternativeMeta
 		if(!alternativeMeta && tmdbId) {
 			logger.log("using TMDB meta")
-			alternativeMeta = await helpers.metaTmdb(type, tmdbId)
+			alternativeMeta = await helpers.metaTmdb(type, tmdbId, "cs-CZ")
+			if(!alternativeMeta.description || alternativeMeta.description.length == 0){
+				logger.log("cz empty description fallback to sk")
+				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "sk-SK")
+			}
+			if(!alternativeMeta.description || alternativeMeta.description.length == 0){
+				logger.log("sk empty description fallback to en")
+				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "en-US")
+			}
 		}
 		if (!alternativeMeta && imdbId) {
 			logger.log("using Cinemata meta")
@@ -33,10 +41,18 @@ class SccMeta {
 			alternativeMeta = sccMeta
 		}
 		alternativeMeta.id = sccMeta.id
-		alternativeMeta.name = sccMeta.name ? sccMeta.name : alternativeMeta.name
-		alternativeMeta.description = sccMeta.description ? sccMeta.description : alternativeMeta.description
 		logger.log("final meta", alternativeMeta)
 		return alternativeMeta
+	}
+
+	insertIds(meta, sccShow){
+		return meta.videos.map(video => {
+			video.id = helpers.getWithPrefix(`${sccShow._id}:${video.season}:${video.episode}`)
+			if(video.thumbnail.includes("null")){
+				video.thumbnail = meta.poster
+			}
+			return video
+		})
 	}
 
 	async createMeta(data, type, id) {
@@ -62,7 +78,7 @@ class SccMeta {
 		})
 	}
 
-	async createMetaEpisode(stremioShowMeta, showScMeta, scMeta) {
+	async createMetaEpisode(showScMeta, scMeta) {
 		const data = scMeta._source
 		const universalShowMeta = this.#createUniversalMeta(showScMeta)
 		const universalMeta = this.#createUniversalMeta(data)

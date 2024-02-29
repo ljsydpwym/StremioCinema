@@ -6,13 +6,15 @@ const env = require('./env.js')
 class SCC {
 
 	constructor(){}
+
+	pageSize = 30
 	
 	async search(value, type = "*") {
 		return JSON.parse(await this.#callInternal(`/filter/v2/search`, {
 			type: type,
 			order: "desc",
 			sort: "score",
-			size: 30,
+			size: this.pageSize,
 			value: encodeURIComponent(value),
 		}))
 	}
@@ -23,7 +25,7 @@ class SCC {
 			order: "desc",
 			sort: "dateAdded",
 			days: "365",
-			size: 30,
+			size: this.pageSize,
 			from: from,
 		}))
 	}
