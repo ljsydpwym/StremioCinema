@@ -41,6 +41,9 @@ class SccMeta {
 			alternativeMeta = sccMeta
 		}
 		alternativeMeta.id = sccMeta.id
+		if(alternativeMeta.logo){
+			alternativeMeta.logo = alternativeMeta.logo.replace("http:", "https:")
+		}
 		logger.log("final meta", alternativeMeta)
 		return alternativeMeta
 	}
@@ -150,7 +153,7 @@ class SccMeta {
 		}
 		if (url.startsWith("//")) {
 			return "https:" + url;
-		}
+		}		
 		return url;
 	}
 
