@@ -13,6 +13,12 @@ class Logger {
         }
     }
 
+    logDebug(message, ...optionalParams) {
+        if (env.DEBUG) {
+            console.log(this.tag + message, ...optionalParams)
+        }
+    }
+
 }
 
 module.exports = Logger

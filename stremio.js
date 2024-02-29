@@ -24,11 +24,11 @@ class SccMeta {
 		if(!alternativeMeta && tmdbId) {
 			logger.log("using TMDB meta")
 			alternativeMeta = await helpers.metaTmdb(type, tmdbId, "cs-CZ")
-			if(!alternativeMeta.description || alternativeMeta.description.length == 0){
+			if(!alternativeMeta?.description || alternativeMeta?.description.length == 0){
 				logger.log("cz empty description fallback to sk")
 				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "sk-SK")
 			}
-			if(!alternativeMeta.description || alternativeMeta.description.length == 0){
+			if(!alternativeMeta?.description || alternativeMeta?.description.length == 0){
 				logger.log("sk empty description fallback to en")
 				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "en-US")
 			}

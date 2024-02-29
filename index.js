@@ -39,7 +39,7 @@ app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
 app.get('/', index)
 
-function caching(){
+function caching() {
     return env.DEBUG ? cache("1 second") : cache("30 minutes")
 }
 
@@ -119,7 +119,15 @@ async function catalog(req, res) {
     }
     const scData = extra.search ? await scc.search(extra.search, sccType) : await scc.searchFrom(sccType, extra.skip);
     const scItems = scData.hits.hits;
-    const metas = await Promise.all(Object.entries(scItems).map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType)))
+    const metas = await Promise.all(
+        Object.entries(scItems)
+            .filter(([_, it]) =>{
+                const genres = it._source.info_labels.genre
+                const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
+                return !isExplicit
+            })
+            .map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType))
+    )
     logger.log("metas length", metas.length)
     return res.json({ metas });
 }
@@ -138,9 +146,9 @@ async function meta(req, res) {
     const meta = await sccMeta.createMeta(data, type, id);
     if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
         const episodes = await scc.episodes(sccId);
-        if(!meta.videos){
+        if (!meta.videos) {
             meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(data, it)))
-        }else{
+        } else {
             meta.videos = sccMeta.insertIds(meta, data)
         }
         meta.type = helpers.STREMIO_TYPE.SHOW
