@@ -9,6 +9,7 @@ const env = require('./env.js')
 const cypher = require('./cypher.js')
 const helpers = require('./helpers.js')
 const sentry = require('./sentry.js')
+const catalogs = require('./catalogs.js')
 
 const express = require('express')
 const apicache = require('./cache/apicache.js');
@@ -72,35 +73,11 @@ function manifesf(req, res) {
         description: "Add-on to hook into SCC and Webshare VIP search",
         resources: ['stream', 'catalog', {
             name: "meta",
-            types: [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME],
+            types: catalogs.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
-        catalogs: [{
-            type: helpers.STREMIO_TYPE.MOVIE,
-            id: 'scc_movies_news',
-            name: 'SCC - movies - news',
-            extra: [
-                { name: "search", isRequired: false },
-            ]
-        },
-        {
-            type: helpers.STREMIO_TYPE.SHOW,
-            id: 'scc_series_news',
-            name: 'SCC - series - news',
-            extra: [
-                { name: "search", isRequired: false },
-            ]
-        },
-        {
-            type: helpers.STREMIO_TYPE.ANIME,
-            id: "scc_anime_news",
-            name: "SCC - anime - news",
-            extra: [
-                { name: "search", isRequired: false },
-            ]
-        }
-        ],
-        types: [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME],
+        catalogs: catalogs.catalogs(),
+        types: catalogs.SUPPORTED_TYPES,
     })
 }
 
