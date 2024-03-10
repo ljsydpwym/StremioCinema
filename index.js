@@ -166,7 +166,7 @@ async function meta(req, res) {
     if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
         const episodes = await scc.episodes(sccId);
         if (!meta.videos) {
-            meta.videos = await Promise.all(episodes.map(async it => await sccMeta.createMetaEpisode(data, it)))
+            meta.videos = episodes.map(it => sccMeta.createMetaEpisode(data, it))
         } else {
             meta.videos = sccMeta.insertIds(meta, data)
         }

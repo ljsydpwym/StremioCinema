@@ -106,7 +106,7 @@ class SccMeta {
 		return ret
 	}
 
-	async createMetaEpisode(showScMeta, scMeta) {
+	createMetaEpisode(showScMeta, scMeta) {
 		const data = scMeta._source
 		const universalShowMeta = this.#createUniversalMeta(showScMeta)
 		const universalMeta = this.#createUniversalMeta(data)
