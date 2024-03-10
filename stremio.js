@@ -22,14 +22,14 @@ class SccMeta {
 		const sccMeta = alternative()
 		logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
 		var alternativeMeta
-		if(!alternativeMeta && tmdbId) {
+		if (!alternativeMeta && tmdbId) {
 			logger.log("using TMDB meta")
 			alternativeMeta = await helpers.metaTmdb(type, tmdbId, "cs-CZ")
-			if(!alternativeMeta?.description || alternativeMeta?.description.length == 0){
+			if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
 				logger.log("cz empty description fallback to sk")
 				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "sk-SK")
 			}
-			if(!alternativeMeta?.description || alternativeMeta?.description.length == 0){
+			if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
 				logger.log("sk empty description fallback to en")
 				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "en-US")
 			}
@@ -37,23 +37,23 @@ class SccMeta {
 		if (!alternativeMeta && imdbId) {
 			logger.log("using Cinemata meta")
 			alternativeMeta = await helpers.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
-		} 
-		if(!alternativeMeta){
+		}
+		if (!alternativeMeta) {
 			alternativeMeta = sccMeta
 		}
 		alternativeMeta.id = sccMeta.id
 		alternativeMeta.name = sccMeta.name
-		if(alternativeMeta.logo){
+		if (alternativeMeta.logo) {
 			alternativeMeta.logo = alternativeMeta.logo.replace("http:", "https:")
 		}
 		logger.log("final meta", alternativeMeta)
 		return alternativeMeta
 	}
 
-	insertIds(meta, sccShow){
+	insertIds(meta, sccShow) {
 		return meta.videos.map(video => {
 			video.id = helpers.getWithPrefix(`${sccShow._id}:${video.season}:${video.episode}`)
-			if(video.thumbnail.includes("null")){
+			if (video.thumbnail.includes("null")) {
 				video.thumbnail = meta.poster
 			}
 			return video
@@ -66,7 +66,7 @@ class SccMeta {
 		})
 	}
 
-	createLocalMeta(data, type, id){
+	createLocalMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
 		const universalMeta = this.#createUniversalMeta(data)
 		const ret = {
@@ -87,7 +87,7 @@ class SccMeta {
 		return ret
 	}
 
-	createMiniMeta(data, type, id){
+	createMiniMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
 		const universalMeta = this.#createUniversalMeta(data)
 		const ret = {
@@ -149,7 +149,7 @@ class SccMeta {
 			label: label,
 			translatedLabelSk: translatedLabelSk,
 			translatedLabelEn: translatedLabelEn,
-			name: translatedLabelSk.title || translatedLabelEn.title,
+			name: this.#notAsianWord(translatedLabelSk.title, translatedLabelEn.title),
 			description: translatedLabelSk.plot || translatedLabelEn.plot,
 			imdbRating: data?.ratings?.overall?.rating,
 			runtime: (Math.round(label.duration / 60)) + " min",
@@ -160,6 +160,23 @@ class SccMeta {
 			),
 		};
 		return ret
+	}
+
+	#notAsianWord(title, fallback) {
+		if(
+			/[\u0900-\u097F]/.test(title) || //  # hindi
+			/[\u0600-\u06FF]/.test(title) || //  # arabic
+			/[\u0B80-\u0BFF]/.test(title) || //  # tamil
+			/[\u0E00-\u0E7F]/.test(title) || //  # thai
+			/[\u1100-\u11FF]/.test(title) || //  # korean
+			/[\u30A0-\u30FF]/.test(title) || //  # japanese
+			/[\u4E00-\u9FFF]/.test(title) || //  # chinese
+			/[\uAC00-\uD7AF]/.test(title)    //  # korean 2
+		){
+			return fallback
+		}else{
+			return title || fallback
+		}
 	}
 
 	resolveImage() {
@@ -178,7 +195,7 @@ class SccMeta {
 		}
 		if (url.startsWith("//")) {
 			return "https:" + url;
-		}		
+		}
 		return url;
 	}
 
