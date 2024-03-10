@@ -12,7 +12,8 @@ class SccMeta {
 	META_HUB_EPISODES = "https://episodes.metahub.space";
 
 	async createMetaPreview(scMeta, type) {
-		return await this.createMeta(scMeta._source, type, scMeta._id)
+		const ret = await this.createMeta(scMeta._source, type, scMeta._id) //can be local
+		return ret
 	}
 
 	async cinemataIfPossible(scRaw, type, alternative) {
@@ -41,6 +42,7 @@ class SccMeta {
 			alternativeMeta = sccMeta
 		}
 		alternativeMeta.id = sccMeta.id
+		alternativeMeta.name = sccMeta.name
 		if(alternativeMeta.logo){
 			alternativeMeta.logo = alternativeMeta.logo.replace("http:", "https:")
 		}
@@ -60,25 +62,48 @@ class SccMeta {
 
 	async createMeta(data, type, id) {
 		return await this.cinemataIfPossible(data, type, () => {
-			id = helpers.getWithPrefix(id);
-			const universalMeta = this.#createUniversalMeta(data)
-			const ret = {
-				id: id,
-				type: type,
-				name: universalMeta.name,
-				poster: universalMeta.poster,
-				description: universalMeta.description,
-				cast: data.cast.slice(0, 3).map(it => it.name),
-				director: universalMeta.label.director.slice(0, 1),
-				genres: universalMeta.label.genre,
-				imdbRating: universalMeta.imdbRating,
-				runtime: universalMeta.runtime,
-				releaseInfo: universalMeta.label.year,
-				logo: universalMeta.imdbLogo,
-				background: universalMeta.imdbBackground,
-			};
-			return ret
+			return this.createLocalMeta(data, type, id)
 		})
+	}
+
+	createLocalMeta(data, type, id){
+		id = helpers.getWithPrefix(id);
+		const universalMeta = this.#createUniversalMeta(data)
+		const ret = {
+			id: id,
+			type: type,
+			name: universalMeta.name,
+			poster: universalMeta.poster,
+			description: universalMeta.description,
+			cast: data.cast.slice(0, 3).map(it => it.name),
+			director: universalMeta.label.director.slice(0, 1),
+			genres: universalMeta.label.genre,
+			imdbRating: universalMeta.imdbRating,
+			runtime: universalMeta.runtime,
+			releaseInfo: universalMeta.label.year,
+			logo: universalMeta.imdbLogo,
+			background: universalMeta.imdbBackground,
+		};
+		return ret
+	}
+
+	createMiniMeta(data, type, id){
+		id = helpers.getWithPrefix(id);
+		const universalMeta = this.#createUniversalMeta(data)
+		const ret = {
+			id: id,
+			type: type,
+			name: universalMeta.name,
+			poster: universalMeta.poster,
+			//optional
+			description: universalMeta.description,
+			cast: data.cast.slice(0, 3).map(it => it.name),
+			director: universalMeta.label.director.slice(0, 1),
+			genres: universalMeta.label.genre,
+			imdbRating: universalMeta.imdbRating,
+			releaseInfo: universalMeta.label.year,
+		};
+		return ret
 	}
 
 	async createMetaEpisode(showScMeta, scMeta) {

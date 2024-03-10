@@ -43,7 +43,7 @@ const baseUrl = '/1/:token'
 const onlyStatus200 = (req, res) => res.statusCode === 200
 
 function caching() {
-    return cache("200 minutes", onlyStatus200)
+    return cache(env.CACHE ? "200 minutes" : "1 second", onlyStatus200)
 }
 
 app.get(baseUrl + '/manifest.json', manifesf)
@@ -145,7 +145,7 @@ async function catalog(req, res) {
                 const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
                 return !isExplicit
             })
-            .map(async ([_, data]) => await sccMeta.createMetaPreview(data, stremioType))
+            .map(([_, data]) => sccMeta.createMetaPreview(data, stremioType))
     )
     logger.log("metas length", metas.length)
     return res.json({ metas });
