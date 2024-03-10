@@ -265,7 +265,7 @@ async function getWebshareMeta(scStreams) {
         .map(it => {
             const firstVideo = it.video[0]
             const videoHeight = helpers.formatHeight(firstVideo.height)
-            const videoHDR = helpers.formatHDR(firstVideo.hdr, firstVideo["3d"])
+            const videoHDR = helpers.formatHDR(firstVideo.hdr, firstVideo.codec, firstVideo["3d"])
             const audios = [...new Set(Array.from(it.audio)
                 .filter(it => it.language !== undefined && it.language.length > 0)
                 .map(it => helpers.format(it.language))

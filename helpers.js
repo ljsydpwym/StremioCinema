@@ -26,7 +26,7 @@ function is_hdr_value_dv_hdr(hdr){
     return hdr && (hdr || hdr?.includes(HDR_FORMAT_HDR_1) || hdr?.includes(HDR_FORMAT_HDR_2))
 }
 
-function formatHDR(hdrString, is3D) {
+function formatHDR(hdrString, codec, is3D) {
     const isDV = is_hdr_value_dv(hdrString)
     const isHDR = is_hdr_value_dv_hdr(hdrString)
     var output = ""
@@ -36,6 +36,8 @@ function formatHDR(hdrString, is3D) {
         output += "-HDR"    
     if(is3D)
         output += "-3D"
+    if(codec)
+        output += `-${codec}`
     return output
 }
 
