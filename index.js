@@ -268,15 +268,14 @@ async function getWebshareMeta(scStreams) {
             const videoHDR = helpers.formatHDR(firstVideo.hdr, firstVideo.codec, firstVideo["3d"])
             const audios = [...new Set(Array.from(it.audio)
                 .filter(it => it.language !== undefined && it.language.length > 0)
-                .map(it => helpers.format(it.language))
-                .sort((a, b) => a.localeCompare(b)))];
+                .map(it => helpers.formatAudio(it)))];
             const subtitles = [...new Set(Array.from(it.subtitles)
                 .filter(it => it.language !== undefined && it.language.length > 0)
                 .map(it => helpers.format(it.language))
                 .sort((a, b) => a.localeCompare(b)))];
 
-            const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)}`
-            const video = `📹\tVideo:\t\t${videoHeight}${videoHDR}`
+            const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)} [${helpers.formatBitrate(it)}]`
+            const video = `📹\tVideo:\t\t${videoHeight} ${videoHDR}`
             const audio = audios ? "🔊\tAudio:\t\t" + audios.join(",") : undefined
             const subtitle = subtitles ? "💬\tSubtitles:\t" + subtitles.join(",") : undefined
             return {

@@ -1,5 +1,30 @@
 function format(value) {
-    return value.trim().toUpperCase()
+    return value ? value.trim().toUpperCase() : ''
+}
+
+function formatAudio(value) {
+    return `${format(value.language)} [${format(value.codec)} ${formatChannel(value.channels)}]`
+}
+
+function formatChannel(value){
+    switch(value){
+        case 6: return "5.1"
+        case 8: return "7.1"
+        default: return value.toFixed(1)
+    }
+}
+
+function formatBitrate(stream){
+   return convert_bitrate(stream.size / stream.video[0].duration * 8)
+}
+
+function convert_bitrate(mbit) {
+    if (mbit == 0 || mbit == null) {
+        return 0;
+    }
+    var p = Math.pow(1024, 2);
+    var s = mbit / p;
+    return s.toFixed(2) + " Mbit/s"
 }
 
 const delay = 0.9
@@ -29,16 +54,16 @@ function is_hdr_value_dv_hdr(hdr){
 function formatHDR(hdrString, codec, is3D) {
     const isDV = is_hdr_value_dv(hdrString)
     const isHDR = is_hdr_value_dv_hdr(hdrString)
-    var output = ""
+    var list = []
     if(isDV)
-        output += "-DV"    
+        list.push("DV")    
     if(isHDR)
-        output += "-HDR"    
+        list.push("HDR")
     if(is3D)
-        output += "-3D"
+        list.push("3D")
     if(codec)
-        output += `-${codec}`
-    return output
+        list.push(`${codec}`)
+    return list.length > 0 ? `[${list.join(",")}]` : ""
 }
 
 function bytesToSize(bytes){
@@ -115,4 +140,6 @@ module.exports = {
     SCC_TYPE,
     metaCinemata,
     metaTmdb,
+    formatAudio,
+    formatBitrate,
 }
