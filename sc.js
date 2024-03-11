@@ -9,6 +9,12 @@ class SCC {
 
 	pageSize = 30
 	
+	async filter(filter, params) {
+		const res = await this.#callInternal(`/filter/v2/${filter}`, params)
+		const ret = JSON.parse(res)
+		return ret
+	}	
+
 	async search(value, type = "*") {
 		return JSON.parse(await this.#callInternal(`/filter/v2/search`, {
 			type: type,

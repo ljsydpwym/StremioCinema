@@ -10,6 +10,7 @@ const cypher = require('./cypher.js')
 const helpers = require('./helpers.js')
 const sentry = require('./sentry.js')
 const catalogs = require('./catalogs.js')
+const settings = require('./settings.js')
 
 const express = require('express')
 const apicache = require('./cache/apicache.js');
@@ -35,7 +36,6 @@ app.use(cors())
 const logger = new Logger("Main", true)
 
 const scc = new SCC()
-const sccMeta = new SccMeta()
 const tmdb = new Tmdb()
 const webshare = new Webshare()
 
@@ -64,6 +64,7 @@ app.get('/api/cache/clear/:target?', (req, res) => {
 })
 
 function manifesf(req, res) {
+    const loadedSettings = settings.loadSettings(req.params)
     res.setHeader('Cache-Control', 'max-age=86400') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
@@ -76,25 +77,25 @@ function manifesf(req, res) {
             types: catalogs.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
-        catalogs: catalogs.catalogs(),
+        catalogs: catalogs.catalogsManifest(loadedSettings.explicit),
         types: catalogs.SUPPORTED_TYPES,
     })
 }
 
 
 async function catalog(req, res) {
+    const loadedSettings = settings.loadSettings(req.params)
+    const sccMeta = new SccMeta(loadedSettings)
     const { id, type } = req.params;
     logger.log("catalog", req.params)
     const stremioType = type
     if (!helpers.startWithPrefix(id)) {
         return res.status(404).send("Not found");
     }
+    const catalog_key = id.split("_")[1]
 
-    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null };
-    if (extra.skip === undefined)
-        extra.skip = null;
-    if (extra.search === undefined)
-        extra.search = null;
+    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null, genres: null };
+
     let sccType;
     switch (stremioType) {
         case helpers.STREMIO_TYPE.MOVIE:
@@ -113,14 +114,17 @@ async function catalog(req, res) {
         logger.log("for id " + stremioType + " type is undefined");
         return res.json({ metas: [] });
     }
-    const scData = extra.search ? await scc.search(extra.search, sccType) : await scc.searchFrom(sccType, extra.skip);
+    const scData = await catalogsFetch(sccType, catalog_key, extra);
+    if(!scData){
+        return res.status(404).send("Not found");
+    }
     const scItems = scData.hits.hits;
     const metas = await Promise.all(
         Object.entries(scItems)
             .filter(([_, it]) => {
                 const genres = it._source.info_labels.genre
                 const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
-                return !isExplicit
+                return loadedSettings.explicit || !isExplicit
             })
             .map(([_, data]) => sccMeta.createMetaPreview(data, stremioType))
     )
@@ -128,7 +132,93 @@ async function catalog(req, res) {
     return res.json({ metas });
 }
 
+
+async function catalogsFetch(sccType, filter, extra) {
+    const days = 100000
+    const size = 30
+    const laguages = "sk"
+    var params = {}
+    var filterParam = catalogs.FILTER.ALL
+    switch (filter) {
+        case catalogs.CATALOG_KEYS.new_releases_dubbed: {
+            params[catalogs.QUERY.LANG] = laguages
+            params[catalogs.QUERY.SORT] = catalogs.SORT.LANG_DATE_ADDED
+            params[catalogs.QUERY.DAYS] = days
+            filterParam = catalogs.FILTER.NEWS_DUBBED
+            break
+        }
+        case catalogs.CATALOG_KEYS.new_releases: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
+            params[catalogs.QUERY.DAYS] = days
+            filterParam = catalogs.FILTER.NEWS
+            break
+        }
+        case catalogs.CATALOG_KEYS.last_added_children: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.LAST_CHILDREN_DATE_ADDED
+            params[catalogs.QUERY.DAYS] = days
+            break
+        }
+        case catalogs.CATALOG_KEYS.new_releases_children: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.LAST_CHILD_PREMIERED
+            params[catalogs.QUERY.DAYS] = days
+            filterParam = catalogs.FILTER.NEWS_CHILDREN
+            break
+        }
+        case catalogs.CATALOG_KEYS.new_releases_subs: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
+            params[catalogs.QUERY.LANG] = laguages
+            params[catalogs.QUERY.DAYS] = days
+            filterParam = catalogs.FILTER.NEWS_SUBS
+            break
+        }
+        case catalogs.CATALOG_KEYS.most_watched: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.PLAY_COUNT
+            break
+        }
+        case catalogs.CATALOG_KEYS.popular: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.POPULARITY
+            break
+        }
+        case catalogs.CATALOG_KEYS.trending: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.TRENDING
+            break
+        }
+        case catalogs.CATALOG_KEYS.last_added: {
+            params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
+            break
+        }
+        case catalogs.CATALOG_KEYS.genre: {
+            const genreKey = catalogs.GENRES.find(it => it.name == extra.genres)?.key
+            if(!genreKey){
+                return undefined
+            }
+            params[catalogs.QUERY.SORT] = catalogs.SORT.YEAR
+            params[catalogs.QUERY.VALUE] = encodeURIComponent(genreKey)
+            filterParam = catalogs.FILTER.GENRE
+            break
+        }
+        default: {
+            if(!extra.search){
+                return undefined
+            }
+            params[catalogs.QUERY.VALUE] = encodeURIComponent(extra.search)
+            params[catalogs.QUERY.SORT] = catalogs.SORT.LANG_DATE_ADDED
+            break
+        } 
+    }
+    params[catalogs.QUERY.TYPE] = sccType
+    params[catalogs.QUERY.ORDER] = catalogs.ORDER.DESCENDING
+    params[catalogs.QUERY.SIZE] = size
+    if(extra.skip){
+        params[catalogs.QUERY.FROM] = extra.skip
+    }
+    const ret = scc.filter(filterParam, params)
+    return ret
+}
+
 async function meta(req, res) {
+    const loadedSettings = settings.loadSettings(req.params)
+    const sccMeta = new SccMeta(loadedSettings)
     const { type, id } = req.params;
     logger.log("meta", req.params)
 

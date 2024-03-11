@@ -1,12 +1,15 @@
 const helpers = require('./helpers.js');
 const call = require('./api.js');
 const Logger = require('./logger.js');
+const settings = require('./settings.js');
 
-const logger = new Logger("Stremio", true)
+const logger = new Logger("Stremio", false)
 
 class SccMeta {
 
-	constructor() { }
+	constructor(params) {
+		this.settings = settings.loadSettings(params)
+	}
 
 	META_HUB_IMAGES = "https://images.metahub.space";
 	META_HUB_EPISODES = "https://episodes.metahub.space";
@@ -20,23 +23,21 @@ class SccMeta {
 		const tmdbId = scRaw?.services?.tmdb
 		const imdbId = scRaw?.services?.imdb
 		const sccMeta = alternative()
-		logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
 		var alternativeMeta
-		if (!alternativeMeta && tmdbId) {
-			logger.log("using TMDB meta")
-			alternativeMeta = await helpers.metaTmdb(type, tmdbId, "cs-CZ")
-			if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
-				logger.log("cz empty description fallback to sk")
-				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "sk-SK")
+		if(this.settings.additionalInfo){
+			logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
+			if (!alternativeMeta && tmdbId) {
+				logger.log("using TMDB meta")
+				alternativeMeta = await helpers.metaTmdb(type, tmdbId, this.settings.mainLang)
+				if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
+					logger.log("main language empty description fallback to fallback")
+					alternativeMeta = await helpers.metaTmdb(type, tmdbId, this.settings.fallbackLang)
+				}
 			}
-			if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
-				logger.log("sk empty description fallback to en")
-				alternativeMeta = await helpers.metaTmdb(type, tmdbId, "en-US")
+			if (!alternativeMeta && imdbId) {
+				logger.log("using Cinemata meta")
+				alternativeMeta = await helpers.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
 			}
-		}
-		if (!alternativeMeta && imdbId) {
-			logger.log("using Cinemata meta")
-			alternativeMeta = await helpers.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
 		}
 		if (!alternativeMeta) {
 			alternativeMeta = sccMeta

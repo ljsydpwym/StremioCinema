@@ -1,5 +1,6 @@
 const catalogs = require('../catalogs.js')
 
 describe('catalogs', () => {
-    expect(catalogs.catalogs()).toBe("");
+    const output = catalogs.catalogsManifest()
+    expect(output).toBe("");
 })

@@ -8,7 +8,7 @@ class Logger {
     }
 
     log(message, ...optionalParams) {
-        if (env.DEBUG) {
+        if (env.DEBUG && this.enabled) {
             console.log(this.tag + message, ...optionalParams)
         }
     }

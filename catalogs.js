@@ -67,9 +67,11 @@ const QUERY = {
     EPISODE: 'episode',
     ROOT_PARENT: 'root_parent',
     CONCERT: 'concert',
+    SIZE: 'size',
 }
 
 const CATALOG_KEYS = {
+    search: "search",
     new_releases_dubbed: "new-releases-dubbed",
     new_releases: "new-releases",
     last_added_children: "last-added-children",
@@ -82,63 +84,119 @@ const CATALOG_KEYS = {
     last_added: "last-added",
 }
 
+const GENRES = [
+    { key: 'Erotic', name: 'Erotický', explicit: true },
+    { key: 'Pornographic', name: 'Pornografický', explicit: true },
+    { key: 'Action', name: 'Akčný', explicit: false },
+    { key: 'Animated', name: 'Animovaný', explicit: false },
+    { key: 'Animation', name: 'Animácie', explicit: false },
+    { key: 'Adventure', name: 'Dobrodružný', explicit: false },
+    { key: 'Biographical', name: 'Životopisný', explicit: false },
+    { key: 'Catastrophic', name: 'Katastrofický', explicit: false },
+    { key: 'Comedy', name: 'Komédia', explicit: false },
+    { key: 'Competition', name: 'Súťažný', explicit: false },
+    { key: 'Crime', name: 'Kriminálny', explicit: false },
+    { key: 'Documentary', name: 'Dokumentárny', explicit: false },
+    { key: 'Fairy Tale', name: 'Rozprávky', explicit: false },
+    { key: 'Drama', name: 'Dráma', explicit: false },
+    { key: 'Family', name: 'Rodinný', explicit: false },
+    { key: 'Fantasy', name: 'Fantasy', explicit: false },
+    { key: 'Historical', name: 'Historický', explicit: false },
+    { key: 'Horror', name: 'Hororový', explicit: false },
+    { key: 'IMAX', name: 'IMAX', explicit: false },
+    { key: 'Educational', name: 'Náučný', explicit: false },
+    { key: 'Music', name: 'Hudobný', explicit: false },
+    { key: 'Journalistic', name: 'Publicistický', explicit: false },
+    { key: 'Military', name: 'Military', explicit: false },
+    { key: 'Musical', name: 'Muzikál', explicit: false },
+    { key: 'Mysterious', name: 'Mysteriózny', explicit: false },
+    { key: 'Psychological', name: 'Psychologický', explicit: false },
+    { key: 'Reality', name: 'Reality', explicit: false },
+    { key: 'Romance', name: 'Romantický', explicit: false },
+    { key: 'Sci-Fi', name: 'Sci-Fi', explicit: false },
+    { key: 'Short', name: 'Krátkometrážny', explicit: false },
+    { key: 'Sports', name: 'Športový', explicit: false },
+    { key: 'Stand-Up', name: 'Stand-Up', explicit: false },
+    { key: 'Talk-Show', name: 'Talk-Show', explicit: false },
+    { key: 'Telenovela', name: 'Telenovela', explicit: false },
+    { key: 'Thriller', name: 'Thriller', explicit: false },
+    { key: 'Travel', name: 'Cestopisný', explicit: false },
+    { key: 'Western', name: 'Western', explicit: false },
+    { key: 'War', name: 'Vojenský', explicit: false },
+]
+
 const CATALOGS = [
     {
-        key: CATALOG_KEYS.new_releases_dubbed,
-        name: "New released dubbed",
-    },
-    {
-        key: CATALOG_KEYS.new_releases,
-        name: "New released",
-    },
-    {
-        key: CATALOG_KEYS.last_added_children,
-        name: "New added children",
-    },
-    {
-        key: CATALOG_KEYS.new_releases_children,
-        name: "New released children",
-    },
-    {
-        key: CATALOG_KEYS.new_releases_subs,
-        name: "New released sub",
-    },
-    {
-        key: CATALOG_KEYS.most_watched,
-        name: "Most watched",
+        key: CATALOG_KEYS.trending,
+        name: "Trendy",
     },
     {
         key: CATALOG_KEYS.popular,
-        name: "Popular",
+        name: "Populárne",
     },
     {
-        key: CATALOG_KEYS.genre,
-        name: "Genre",
+        key: CATALOG_KEYS.most_watched,
+        name: "Najsledovanejšie",
     },
     {
-        key: CATALOG_KEYS.trending,
-        name: "Trending",
+        key: CATALOG_KEYS.new_releases,
+        name: "Novinky",
+    },
+    {
+        key: CATALOG_KEYS.new_releases_dubbed,
+        name: "Novinky dabované",
+    },
+    {
+        key: CATALOG_KEYS.new_releases_subs,
+        name: "Novinky s titulkami",
     },
     {
         key: CATALOG_KEYS.last_added,
-        name: "New added",
+        name: "Posledné pridané",
     },
+    {
+        key: CATALOG_KEYS.genre,
+        name: "Žánre",
+        genres: true
+    },
+    {
+        key: CATALOG_KEYS.search,
+        name: "Hladať",
+        search: true
+    },
+    // {
+    //     key: CATALOG_KEYS.last_added_children,
+    //     name: "New added children",
+    // },
+    // {
+    //     key: CATALOG_KEYS.new_releases_children,
+    //     name: "New released children",
+    // },
 ]
 
 const SUPPORTED_TYPES = [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME]
 
-function catalogs(){
+function catalogsManifest(explicit) {
     return SUPPORTED_TYPES.flatMap(type => {
         return CATALOGS.map(catalog => {
+            var extras = []
+            if (catalog.search == true) {
+                extras.push({ name: "search", isRequired: true })
+            }
+            if (catalog.genres == true) {
+                extras.push({
+                    name: "genres", isRequired: true, options:
+                        GENRES
+                            .filter(it => explicit || !it.explicit)
+                            .map(it => it.name)
+                })
+            }
+            extras.push({ name: "skip", isRequired: false })
             return {
                 type: type,
-                id: `scc_${type}_${catalog.key}`,
-                name: `${type} - ${catalog.name}`,
-                extra: [
-                    { key: "search", isRequired: false },
-                    { key: "genre", isRequired: false },
-                    { key: "skip", isRequired: false },
-                ]
+                id: `scc_${catalog.key}`,
+                name: `${catalog.name}`,
+                extra: extras
             }
         })
     })
@@ -146,5 +204,11 @@ function catalogs(){
 
 module.exports = {
     SUPPORTED_TYPES,
-    catalogs,
+    FILTER,
+    CATALOG_KEYS,
+    QUERY,
+    ORDER,
+    SORT,
+    GENRES,
+    catalogsManifest,
 }
