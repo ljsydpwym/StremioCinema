@@ -7,16 +7,16 @@ class Tmdb {
 	constructor(){}
     
     async find(imdbId) {
-        return this.#callInternal(`/find/${imdbId}`, {
+        return this.callInternal(`/find/${imdbId}`, {
             external_source: "imdb_id"
         })
     }
 
     async show(id, season, episode) {
-        return this.#callInternal(`/tv/${id}/season/${season}/episode/${episode}`)
+        return this.callInternal(`/tv/${id}/season/${season}/episode/${episode}`)
     }
 
-    async #callInternal(path, params = {}) {
+    async callInternal(path, params = {}) {
         const queries = helpers.queries({ ...params, api_key: env.TMDB_TOKEN })
         return (await call(
             `get`,

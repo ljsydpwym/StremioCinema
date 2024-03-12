@@ -69,7 +69,7 @@ class SccMeta {
 
 	createLocalMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
-		const universalMeta = this.#createUniversalMeta(data)
+		const universalMeta = this.createUniversalMeta(data)
 		const ret = {
 			id: id,
 			type: type,
@@ -90,7 +90,7 @@ class SccMeta {
 
 	createMiniMeta(data, type, id) {
 		id = helpers.getWithPrefix(id);
-		const universalMeta = this.#createUniversalMeta(data)
+		const universalMeta = this.createUniversalMeta(data)
 		const ret = {
 			id: id,
 			type: type,
@@ -109,8 +109,8 @@ class SccMeta {
 
 	createMetaEpisode(showScMeta, scMeta) {
 		const data = scMeta._source
-		const universalShowMeta = this.#createUniversalMeta(showScMeta)
-		const universalMeta = this.#createUniversalMeta(data)
+		const universalShowMeta = this.createUniversalMeta(showScMeta)
+		const universalMeta = this.createUniversalMeta(data)
 		const premiere = new Date(universalMeta.label.premiered)
 		const imdbLogo = universalShowMeta.imdbId ? `${this.META_HUB_EPISODES}/${universalShowMeta.imdbId}/${universalMeta.label.season}/${universalMeta.label.episode}/w780.jpg` : null
 		premiere.setHours(23, 59, 59)
@@ -134,7 +134,7 @@ class SccMeta {
 		return ret
 	}
 
-	#createUniversalMeta(data) {
+	createUniversalMeta(data) {
 		const imdbId = data?.services?.imdb
 		const imdbLogo = imdbId ? `${this.META_HUB_IMAGES}/logo/medium/${imdbId}/img` : null
 		const imdbPoster = imdbId ? `${this.META_HUB_IMAGES}/poster/medium/${imdbId}/img` : null
@@ -150,7 +150,7 @@ class SccMeta {
 			label: label,
 			translatedLabelSk: translatedLabelSk,
 			translatedLabelEn: translatedLabelEn,
-			name: this.#notAsianWord(translatedLabelSk.title, translatedLabelEn.title),
+			name: this.notAsianWord(translatedLabelSk.title, translatedLabelEn.title),
 			description: translatedLabelSk.plot || translatedLabelEn.plot,
 			imdbRating: data?.ratings?.overall?.rating,
 			runtime: (Math.round(label.duration / 60)) + " min",
@@ -163,7 +163,7 @@ class SccMeta {
 		return ret
 	}
 
-	#notAsianWord(title, fallback) {
+	notAsianWord(title, fallback) {
 		if(
 			/[\u0900-\u097F]/.test(title) || //  # hindi
 			/[\u0600-\u06FF]/.test(title) || //  # arabic
@@ -182,7 +182,7 @@ class SccMeta {
 
 	resolveImage() {
 		for (const url of arguments) {
-			const fixedUrl = this.#fixProtocol(url)
+			const fixedUrl = this.fixProtocol(url)
 			if (fixedUrl) {
 				return fixedUrl
 			}
@@ -190,7 +190,7 @@ class SccMeta {
 		return undefined
 	}
 
-	#fixProtocol(url) {
+	fixProtocol(url) {
 		if (url === undefined || url === null) {
 			return null;
 		}

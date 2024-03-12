@@ -10,13 +10,13 @@ class SCC {
 	pageSize = 30
 	
 	async filter(filter, params) {
-		const res = await this.#callInternal(`/filter/v2/${filter}`, params)
+		const res = await this.callInternal(`/filter/v2/${filter}`, params)
 		const ret = JSON.parse(res)
 		return ret
 	}	
 
 	async search(value, type = "*") {
-		return JSON.parse(await this.#callInternal(`/filter/v2/search`, {
+		return JSON.parse(await this.callInternal(`/filter/v2/search`, {
 			type: type,
 			order: "desc",
 			sort: "score",
@@ -26,7 +26,7 @@ class SCC {
 	}
 
 	async searchFrom(type, from = 0) {
-		return JSON.parse(await this.#callInternal(`/filter/v2/news`, {
+		return JSON.parse(await this.callInternal(`/filter/v2/news`, {
 			type: type,
 			order: "desc",
 			sort: "dateAdded",
@@ -37,7 +37,7 @@ class SCC {
 	}
 
 	async service(id, type) {
-		return JSON.parse(await this.#callInternal(`/filter/v2/service`, {
+		return JSON.parse(await this.callInternal(`/filter/v2/service`, {
 			type: type,
 			service: "tmdb",
 			value: id,
@@ -45,7 +45,7 @@ class SCC {
 	}
 
 	async streams(id) {
-		return await this.#callInternal(`/${id}/streams`)
+		return await this.callInternal(`/${id}/streams`)
 	}
 
 	async episode(id, season, episode) {
@@ -67,24 +67,24 @@ class SCC {
 	}
 
 	async media(id) {
-		return await this.#callInternal(`/${id}`)
+		return await this.callInternal(`/${id}`)
 	}
 
 	async parent(id) {
-		return JSON.parse(await this.#callInternal(`/filter/v2/parent`, {
+		return JSON.parse(await this.callInternal(`/filter/v2/parent`, {
 			value: id,
 			sort: "episode",
 			size: 1000
 		}))
 	}
 
-	#uuidv4() {
+	uuidv4() {
 		return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
 			(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
 		);
 	}
 
-	async #callInternal(path, params = {}) {
+	async callInternal(path, params = {}) {
 		const queries = helpers.queries({ ...params, access_token: env.SC_TOKEN })
 		return (await call(
 			`get`,
@@ -93,7 +93,7 @@ class SCC {
 			{
 				headers: {
 					"User-Agent": "XBMC/13.0-ALPHA3 Git:20130430-e8fe5cf (Windows NT 6.1;WOW64;Win64;x64; http://www.xbmc.org)",
-					"X-Uuid": this.#uuidv4(),
+					"X-Uuid": this.uuidv4(),
 				}
 			}
 		)).body
