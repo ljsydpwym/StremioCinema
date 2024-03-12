@@ -1,4 +1,4 @@
-require('dotenv').config()
+// require('dotenv').config()
 const Logger = require('./logger.js')
 const SccMeta = require('./stremio.js')
 const Webshare = require('./webshare.js')
