@@ -8,7 +8,7 @@ const logger = new Logger("Stremio", false)
 class SccMeta {
 
 	constructor(params) {
-		this.settings = settings.loadSettings(params)
+		this.settings = settings.settingsLoader(params)
 	}
 
 	META_HUB_IMAGES = "https://images.metahub.space";

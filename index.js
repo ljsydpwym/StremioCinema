@@ -10,7 +10,7 @@ const cypher = require('./cypher.js')
 const helpers = require('./helpers.js')
 const sentry = require('./sentry.js')
 const catalogs = require('./catalogs.js')
-const settings = require('./settings.js')
+const {settingsLoader} = require('./settings.js')
 
 const express = require('express')
 const apicache = require('./cache/apicache.js');
@@ -64,7 +64,7 @@ app.get('/api/cache/clear/:target?', (req, res) => {
 })
 
 function manifesf(req, res) {
-    const loadedSettings = settings.loadSettings(req.params)
+    const settings = settingsLoader(req.params)
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
@@ -76,15 +76,15 @@ function manifesf(req, res) {
             types: catalogs.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
-        catalogs: catalogs.catalogsManifest(loadedSettings.explicit),
+        catalogs: catalogs.catalogsManifest(settings.explicit),
         types: catalogs.SUPPORTED_TYPES,
     })
 }
 
 
 async function catalog(req, res) {
-    const loadedSettings = settings.loadSettings(req.params)
-    const sccMeta = new SccMeta(loadedSettings)
+    const settings = settingsLoader(req.params)
+    const sccMeta = new SccMeta(settings)
     const { id, type } = req.params;
     logger.log("catalog", req.params)
     const stremioType = type
@@ -123,7 +123,7 @@ async function catalog(req, res) {
             .filter(([_, it]) => {
                 const genres = it._source.info_labels.genre
                 const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
-                return loadedSettings.explicit || !isExplicit
+                return settings.explicit || !isExplicit
             })
             .map(([_, data]) => sccMeta.createMetaPreview(data, stremioType))
     )
@@ -217,8 +217,8 @@ async function catalogsFetch(sccType, filter, extra) {
 }
 
 async function meta(req, res) {
-    const loadedSettings = settings.loadSettings(req.params)
-    const sccMeta = new SccMeta(loadedSettings)
+    const settings = settingsLoader(req.params)
+    const sccMeta = new SccMeta(settings)
     const { type, id } = req.params;
     logger.log("meta", req.params)
 
@@ -244,6 +244,7 @@ async function meta(req, res) {
 
 async function streams(req, res) {
     const { type, id, token } = req.params
+    const settings = settingsLoader(token)
     logger.log("defineStreamHandler", req.params)
     const idParts = id.split(":")
     const mediaId = idParts[0];
@@ -259,7 +260,7 @@ async function streams(req, res) {
     logger.log("scId", scId)
     const scStreams = Array.from(await scc.streams(scId))
     logger.log("scStreams", scStreams)
-    await webshare.loginIfNeeded(token)
+    await webshare.loginIfNeeded(settings.token)
     const webshareMeta = await getWebshareMeta(scStreams)
     logger.log("webshareMeta", webshareMeta)
     const streams = await getStreams(webshareMeta, req)
