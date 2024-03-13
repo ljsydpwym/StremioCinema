@@ -171,25 +171,37 @@ const SUPPORTED_TYPES = [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, 
 function catalogsManifest(explicit) {
     return SUPPORTED_TYPES.flatMap(type => {
         return CATALOGS.map(catalog => {
+            var extraSupported = []
             var extras = []
             if (catalog.search == true) {
                 extras.push({ name: "search", isRequired: true })
+                extraSupported.push("search")
             }
+            var generatedGenres = undefined
             if (catalog.genres == true) {
+                generatedGenres = GENRES
+                    .filter(it => explicit || !it.explicit)
+                    .map(it => it.name)
                 extras.push({
-                    name: "genres", isRequired: true, options:
-                        GENRES
-                            .filter(it => explicit || !it.explicit)
-                            .map(it => it.name)
+                    name: "genre", 
+                    isRequired: true, 
+                    options: generatedGenres
                 })
+                extraSupported.push("genre")
             }
             extras.push({ name: "skip", isRequired: false })
-            return {
+            extraSupported.push("skip")
+            const ret = {
                 type: type,
                 id: `scc_${catalog.key}`,
                 name: `${catalog.name}`,
                 extra: extras
             }
+            if (generatedGenres) {
+                ret.genres = generatedGenres
+            }
+            ret.extraSupported = extraSupported
+            return ret
         })
     })
 }

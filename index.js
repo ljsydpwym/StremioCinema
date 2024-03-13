@@ -47,7 +47,7 @@ function caching() {
     return cache(env.CACHE ? "200 minutes" : "1 second", onlyStatus200)
 }
 
-app.get(baseUrl + '/manifest.json', manifesf)
+app.get(baseUrl + '/manifest.json', caching(), manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', caching(), catalog)
 app.get(baseUrl + '/meta/:type/:id.json', caching(), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
@@ -65,7 +65,6 @@ app.get('/api/cache/clear/:target?', (req, res) => {
 
 function manifesf(req, res) {
     const loadedSettings = settings.loadSettings(req.params)
-    res.setHeader('Cache-Control', 'max-age=86400') // one day
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
@@ -94,7 +93,7 @@ async function catalog(req, res) {
     }
     const catalog_key = id.split("_")[1]
 
-    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null, genres: null };
+    const extra = req.params.extra ? qs.parse(req.params.extra) : { search: null, skip: null, genre: null };
 
     let sccType;
     switch (stremioType) {
@@ -188,7 +187,7 @@ async function catalogsFetch(sccType, filter, extra) {
             break
         }
         case catalogs.CATALOG_KEYS.genre: {
-            const genreKey = catalogs.GENRES.find(it => it.name == extra.genres)?.key
+            const genreKey = catalogs.GENRES.find(it => it.name == extra.genre)?.key
             if(!genreKey){
                 return undefined
             }
