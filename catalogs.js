@@ -161,17 +161,9 @@ const CATALOGS = [
     },
     {
         key: CATALOG_KEYS.search,
-        name: "Hladať",
+        name: "SC Vyhľadávanie",
         search: true
     },
-    // {
-    //     key: CATALOG_KEYS.last_added_children,
-    //     name: "New added children",
-    // },
-    // {
-    //     key: CATALOG_KEYS.new_releases_children,
-    //     name: "New released children",
-    // },
 ]
 
 const SUPPORTED_TYPES = [helpers.STREMIO_TYPE.MOVIE, helpers.STREMIO_TYPE.SHOW, helpers.STREMIO_TYPE.ANIME]

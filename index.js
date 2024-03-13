@@ -202,7 +202,8 @@ async function catalogsFetch(sccType, filter, extra) {
                 return undefined
             }
             params[catalogs.QUERY.VALUE] = encodeURIComponent(extra.search)
-            params[catalogs.QUERY.SORT] = catalogs.SORT.LANG_DATE_ADDED
+            params[catalogs.QUERY.SORT] = catalogs.SORT.SCORE
+            filterParam = catalogs.FILTER.SEARCH
             break
         } 
     }
@@ -212,7 +213,7 @@ async function catalogsFetch(sccType, filter, extra) {
     if(extra.skip){
         params[catalogs.QUERY.FROM] = extra.skip
     }
-    const ret = scc.filter(filterParam, params)
+    const ret = await scc.filter(filterParam, params)
     return ret
 }
 
