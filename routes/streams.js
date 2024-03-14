@@ -13,13 +13,14 @@ const SCC = require('../api/sc.js')
 const logger = new Logger("streams", true)
 
 async function streams(req, res){
-    const scc = new SCC()
+    const { type, id, token } = req.params
+    const settings = settingsLoader(token)
+
+    const scc = new SCC(settings)
     const tmdb = new Tmdb()
     const webshare = new Webshare()
 
     async function streams(req, res) {
-        const { type, id, token } = req.params
-        const settings = settingsLoader(token)
         logger.log("defineStreamHandler", req.params)
         const idParts = id.split(":")
         const mediaId = idParts[0];
@@ -111,14 +112,14 @@ async function streams(req, res){
                 const videoHDR = helpers.formatHDR(firstVideo.hdr, firstVideo.codec, firstVideo["3d"])
                 const audios = [...new Set(Array.from(it.audio)
                     .filter(it => it.language !== undefined && it.language.length > 0)
-                    .map(it => helpers.formatAudio(it)))];
+                    .map(it => helpers.formatAudio(it) + (settings.showAudioExtra ? helpers.formatAudioExtra(it) : '')))];
                 const subtitles = [...new Set(Array.from(it.subtitles)
                     .filter(it => it.language !== undefined && it.language.length > 0)
                     .map(it => helpers.format(it.language))
                     .sort((a, b) => a.localeCompare(b)))];
     
-                const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)} [${helpers.formatBitrate(it)}]`
-                const video = `📹\tVideo:\t\t${videoHeight} ${videoHDR}`
+                const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)} ${settings.showBitrate ? helpers.formatBitrate(it) : ''}`
+                const video = `📹\tVideo:\t\t${videoHeight} ${settings.showVideoExtra ? videoHDR : ''}`
                 const audio = audios ? "🔊\tAudio:\t\t" + audios.join(",") : undefined
                 const subtitle = subtitles ? "💬\tSubtitles:\t" + subtitles.join(",") : undefined
                 return {

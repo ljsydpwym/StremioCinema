@@ -3,7 +3,11 @@ function format(value) {
 }
 
 function formatAudio(value) {
-    return `${format(value.language)} [${format(value.codec)} ${formatChannel(value.channels)}]`
+    return `${format(value.language)}`
+}
+
+function formatAudioExtra(value) {
+    return `[${format(value.codec)} ${formatChannel(value.channels)}]`
 }
 
 function formatChannel(value){
@@ -15,7 +19,7 @@ function formatChannel(value){
 }
 
 function formatBitrate(stream){
-   return convert_bitrate(stream.size / stream.video[0].duration * 8)
+   return `[${convert_bitrate(stream.size / stream.video[0].duration * 8)}]`
 }
 
 function convert_bitrate(mbit) {
@@ -82,18 +86,6 @@ function pad(value) {
 
 const PREFIX = "scc_"
 
-const STREMIO_TYPE = {
-    MOVIE: "movie",
-    SHOW: "series",
-    ANIME: "anime",
-}
-const SCC_TYPE = {
-    ANY: "*",
-    MOVIE: "movie",
-    SHOW: "tvshow",
-    ANIME: "anime",
-}
-
 function startWithPrefix(id) {
     return id.startsWith("scc")
 }
@@ -120,8 +112,7 @@ module.exports = {
     queries,
     formatHDR,
     PREFIX,
-    STREMIO_TYPE,
-    SCC_TYPE,
     formatAudio,
+    formatAudioExtra,
     formatBitrate,
 }

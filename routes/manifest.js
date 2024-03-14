@@ -25,7 +25,7 @@ function manifest(req, res) {
             configurable: true,
             configurationRequired: !settings.token || settings.token.length == 0
         },
-        catalogs: catalogs.catalogsManifest(settings.allowExplicit),
+        catalogs: catalogs.catalogsManifest(settings),
         types: catalogs.SUPPORTED_TYPES,
     })
 }

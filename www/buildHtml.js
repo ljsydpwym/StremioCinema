@@ -16,6 +16,12 @@ function buildHtml() {
 	settings.allowExplicit == settings[allowExplicit]
 	const pageSize = "pageSize"
 	settings.pageSize == settings[pageSize]
+	const showBitrate = "showBitrate"
+	settings.showBitrate == settings[showBitrate]
+	const showVideoExtra = "showVideoExtra"
+	settings.showVideoExtra == settings[showVideoExtra]
+	const showAudioExtra = "showAudioExtra"
+	settings.showAudioExtra == settings[showAudioExtra]
 
 	function renderInput(label, id, type, def, info) {
 		return `
@@ -115,7 +121,7 @@ function buildHtml() {
 			document.getElementById('theform').onsubmit = function (e) {
 				e.preventDefault(); // Prevent the default form submission
 				var formData = getFormData(e);
-				var launchUrl = 'stremio://' + window.location.host + \`/ 1 / \${ formData } /manifest.json\`
+				var launchUrl = 'stremio://'+window.location.host+\`/1/\${formData}/manifest.json\`
 				document.getElementById('formDataDisplay').value = launchUrl;
 				console.log(launchUrl);
 				// Redirect to app URL
@@ -153,8 +159,11 @@ function buildHtml() {
 						}, settings.tmdbFallbackLang, "Alternativny jazyk v pripade ze prvy nieje kompletny")}
 					</div>
 
-					${renderCheckbox("Explicitny obsah?", allowExplicit, settings.allowExplicit)}
 					${renderInput("Pocet filmov na stranke", pageSize, "number", `${settings.pageSize}`, "Vyssie cislo sposobi pomalsie nacitanie")}
+					${renderCheckbox("Explicitny obsah", allowExplicit, settings.allowExplicit)}
+					${renderCheckbox("Zobrazit bitrate", showBitrate, settings.showBitrate)}
+					${renderCheckbox("Zobrazit video kodeky", showVideoExtra, settings.showVideoExtra)}
+					${renderCheckbox("Zobrazit audio kodeky", showAudioExtra, settings.showAudioExtra)}
 
 					<div class="d-grid gap-2 mb-3">
 						<button type="submit" class="btn btn-primary btn-lg">Instalovat</button>
