@@ -9,26 +9,18 @@ const env = require('./helpers/env.js')
 const cypher = require('./helpers/cypher.js')
 const helpers = require('./helpers/helpers.js')
 const sentry = require('./helpers/sentry.js')
+const cache = require('./helpers/cache.js')
 const {settingsLoader} = require('./helpers/settings.js')
 
 const SccMeta = require('./logic/stremio.js')
 const catalogs = require('./logic/catalogs.js')
 
+const {manifest} = require('./routes/manifest.js')
+
 const qs = require('querystring')
 const express = require('express')
-const apicache = require('apicache');
 const cors = require('cors')
 const app = express()
-
-let cache = apicache.middleware;
-apicache.options({
-    appendKey: (req, res) => {
-        req.apicacheGroup = "cached"
-        return req.url.split("/").slice(3).toString()
-    },
-    debug: env.DEBUG,
-    enabled: env.CACHE,
-})
 
 const path = require('path');
 
@@ -36,62 +28,26 @@ sentry.init(app)
 
 app.use(cors())
 
-const logger = new Logger("Main", true)
-
 const scc = new SCC()
 const tmdb = new Tmdb()
 const webshare = new Webshare()
 
 const baseUrl = '/1/:token'
 
-const onlyStatus200 = (req, res) => res.statusCode === 200
+app.get(baseUrl + '/manifest.json', cache.caching(), manifest)
+app.get('/manifest.json', cache.caching(), manifest)
 
-function caching() {
-    return cache(env.CACHE ? "200 minutes" : "1 second", onlyStatus200)
-}
+app.get(baseUrl + '/catalog/:type/:id/:extra?.json', cache.caching(), catalog)
+app.get(baseUrl + '/meta/:type/:id.json', cache.caching(), meta);
 
-app.get(baseUrl + '/manifest.json', caching(), manifesf)
-app.get('/manifest.json', caching(), manifesf)
-app.get(baseUrl + '/catalog/:type/:id/:extra?.json', caching(), catalog)
-app.get(baseUrl + '/meta/:type/:id.json', caching(), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
+
 app.get('/', configure)
 app.get('/configure', configure)
 app.get(baseUrl + '/configure', configure)
-app.get('/api/cache/performance', (req, res) => {
-    res.json(apicache.getPerformance())
-})
-app.get('/api/cache/index', (req, res) => {
-    res.json(apicache.getIndex())
-})
-app.get('/api/cache/clear/:target?', (req, res) => {
-    res.json(apicache.clear(req.params.target))
-})
 
-function manifesf(req, res) {
-    const { type, id, token } = req.params
-    const settings = settingsLoader(token)
-    res.setHeader('Content-Type', 'application/json')
-    res.send({
-        id: env.PLUGIN_ID,
-        version: '1.0.0',
-        name: env.PLUGIN_NAME,
-        description: "Add-on to hook into SCC and Webshare VIP search",
-        resources: ['stream', 'catalog', {
-            name: "meta",
-            types: catalogs.SUPPORTED_TYPES,
-            idPrefix: [helpers.PREFIX],
-        }],
-        behaviorHints: {
-            configurable: true,
-            configurationRequired: !settings.token || settings.token.length == 0
-        },
-        catalogs: catalogs.catalogsManifest(settings.allowExplicit),
-        types: catalogs.SUPPORTED_TYPES,
-    })
-}
-
+cache.initRoutes(app)
 
 async function catalog(req, res) {
     const { type, id, token } = req.params
