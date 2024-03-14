@@ -1,5 +1,4 @@
 const addons = require('../api/addons.js');
-const call = require('../api/api.js');
 
 const helpers = require('../helpers/helpers.js');
 const Logger = require('../helpers/logger.js');

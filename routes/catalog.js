@@ -67,7 +67,6 @@ async function catalog(req, res) {
 
     async function catalogsFetch(sccType, filter, extra) {
         const days = 100000
-        const size = 30
         const laguages = "sk"
         var params = {}
         var filterParam = catalogs.FILTER.ALL
@@ -141,7 +140,7 @@ async function catalog(req, res) {
         }
         params[catalogs.QUERY.TYPE] = sccType
         params[catalogs.QUERY.ORDER] = catalogs.ORDER.DESCENDING
-        params[catalogs.QUERY.SIZE] = size
+        params[catalogs.QUERY.SIZE] = settings.pageSize
         if (extra.skip) {
             params[catalogs.QUERY.FROM] = extra.skip
         }

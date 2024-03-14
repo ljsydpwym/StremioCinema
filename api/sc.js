@@ -2,12 +2,13 @@ const crypto = require('crypto')
 const call = require('./api.js')
 const helpers = require('../helpers/helpers.js')
 const env = require('../helpers/env.js')
+const settings = require('../helpers/settings.js');
 
 class SCC {
 
-	constructor(){}
-
-	pageSize = 30
+	constructor(params) {
+		this.settings = settings.settingsLoader(params)
+	}
 	
 	async filter(filter, params) {
 		const res = await this.callInternal(`/filter/v2/${filter}`, params)
@@ -20,7 +21,7 @@ class SCC {
 			type: type,
 			order: "desc",
 			sort: "score",
-			size: this.pageSize,
+			size: settings.pageSize,
 			value: encodeURIComponent(value),
 		}))
 	}
@@ -31,7 +32,7 @@ class SCC {
 			order: "desc",
 			sort: "dateAdded",
 			days: "365",
-			size: this.pageSize,
+			size: settings.pageSize,
 			from: from,
 		}))
 	}
