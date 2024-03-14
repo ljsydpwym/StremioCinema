@@ -9,13 +9,13 @@ function settingsLoader(input) {
     }
     return {
         tmdb: {
-            mainLang: params.mainLang ?? "sk-SK",
-            fallbackLang: params.fallbackLang ?? "cs-CZ",
-            enabled: params.loadTmdb ?? false,
+            enabled: params?.loadTmdb ?? false,
+            mainLang: params?.mainLang ?? "sk-SK",
+            fallbackLang: params?.fallbackLang ?? "cs-CZ",
         },
-        allowExplicit: params.explicit ?? false,
-        pageSize: params.pageSize ?? 30,
-        token: params.token ?? params,
+        allowExplicit: params?.explicit ?? false,
+        pageSize: params?.pageSize ?? 30,
+        token: params?.token ?? params,
     }
 }
 

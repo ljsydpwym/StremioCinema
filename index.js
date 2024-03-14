@@ -13,7 +13,7 @@ const catalogs = require('./catalogs.js')
 const {settingsLoader} = require('./settings.js')
 
 const express = require('express')
-const apicache = require('./cache/apicache.js');
+const apicache = require('apicache');
 const cors = require('cors')
 const app = express()
 
@@ -48,11 +48,14 @@ function caching() {
 }
 
 app.get(baseUrl + '/manifest.json', caching(), manifesf)
+app.get('/manifest.json', caching(), manifesf)
 app.get(baseUrl + '/catalog/:type/:id/:extra?.json', caching(), catalog)
 app.get(baseUrl + '/meta/:type/:id.json', caching(), meta);
 app.get(baseUrl + '/stream/:type/:id.json', streams)
 app.get('/stream/url/:id.json', url)
-app.get('/', index)
+app.get('/', configure)
+app.get('/configure', configure)
+app.get(baseUrl + '/configure', configure)
 app.get('/api/cache/performance', (req, res) => {
     res.json(apicache.getPerformance())
 })
@@ -64,7 +67,8 @@ app.get('/api/cache/clear/:target?', (req, res) => {
 })
 
 function manifesf(req, res) {
-    const settings = settingsLoader(req.params)
+    const { type, id, token } = req.params
+    const settings = settingsLoader(token)
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
@@ -76,6 +80,10 @@ function manifesf(req, res) {
             types: catalogs.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
+        behaviorHints: {
+            configurable: true,
+            configurationRequired: !settings.token || settings.token.length == 0
+        },
         catalogs: catalogs.catalogsManifest(settings.allowExplicit),
         types: catalogs.SUPPORTED_TYPES,
     })
@@ -83,9 +91,9 @@ function manifesf(req, res) {
 
 
 async function catalog(req, res) {
-    const settings = settingsLoader(req.params)
+    const { type, id, token } = req.params
+    const settings = settingsLoader(token)
     const sccMeta = new SccMeta(settings)
-    const { id, type } = req.params;
     logger.log("catalog", req.params)
     const stremioType = type
     if (!helpers.startWithPrefix(id)) {
@@ -217,9 +225,9 @@ async function catalogsFetch(sccType, filter, extra) {
 }
 
 async function meta(req, res) {
-    const settings = settingsLoader(req.params)
+    const { type, id, token } = req.params
+    const settings = settingsLoader(token)
     const sccMeta = new SccMeta(settings)
-    const { type, id } = req.params;
     logger.log("meta", req.params)
 
     if (!helpers.startWithPrefix(id)) {
@@ -399,10 +407,16 @@ function index(req, res) {
     res.sendFile(path.join(__dirname, '/index.html'))
 }
 
+function configure(req, res) {
+    res.sendFile(path.join(__dirname, '/configure.html'))
+}
+
 const port = env.PORT
 
 app.listen(port, function () {
     console.log(`http://127.0.0.1:${port}/1/${env.WS_TOKEN}/manifest.json`)
+    console.log(`http://127.0.0.1:${port}/configure`)
+    console.log(`http://127.0.0.1:${port}/manifest.json`)
 })
 
 module.exports = app
