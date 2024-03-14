@@ -7,6 +7,7 @@ const env = require('../helpers/env.js')
 
 const catalogs = require('../logic/catalogs.js')
 const SccMeta = require('../logic/stremio.js')
+const types = require('../logic/types.js')
 
 const SCC = require('../api/sc.js')
 
@@ -30,14 +31,14 @@ async function catalog(req, res) {
 
         let sccType;
         switch (stremioType) {
-            case helpers.STREMIO_TYPE.MOVIE:
-                sccType = helpers.SCC_TYPE.MOVIE;
+            case types.STREMIO_TYPE.MOVIE:
+                sccType = types.SCC_TYPE.MOVIE;
                 break;
-            case helpers.STREMIO_TYPE.SHOW:
-                sccType = helpers.SCC_TYPE.SHOW;
+            case types.STREMIO_TYPE.SHOW:
+                sccType = types.SCC_TYPE.SHOW;
                 break;
-            case helpers.STREMIO_TYPE.ANIME:
-                sccType = helpers.SCC_TYPE.ANIME;
+            case types.STREMIO_TYPE.ANIME:
+                sccType = types.SCC_TYPE.ANIME;
                 break;
             default:
                 sccType = undefined;
@@ -69,80 +70,80 @@ async function catalog(req, res) {
         const days = 100000
         const laguages = "sk"
         var params = {}
-        var filterParam = catalogs.FILTER.ALL
+        var filterParam = types.FILTER.ALL
         switch (filter) {
-            case catalogs.CATALOG_KEYS.new_releases_dubbed: {
-                params[catalogs.QUERY.LANG] = laguages
-                params[catalogs.QUERY.SORT] = catalogs.SORT.LANG_DATE_ADDED
-                params[catalogs.QUERY.DAYS] = days
-                filterParam = catalogs.FILTER.NEWS_DUBBED
+            case types.CATALOG_KEYS.new_releases_dubbed: {
+                params[types.QUERY.LANG] = laguages
+                params[types.QUERY.SORT] = types.SORT.LANG_DATE_ADDED
+                params[types.QUERY.DAYS] = days
+                filterParam = types.FILTER.NEWS_DUBBED
                 break
             }
-            case catalogs.CATALOG_KEYS.new_releases: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
-                params[catalogs.QUERY.DAYS] = days
-                filterParam = catalogs.FILTER.NEWS
+            case types.CATALOG_KEYS.new_releases: {
+                params[types.QUERY.SORT] = types.SORT.DATE_ADDED
+                params[types.QUERY.DAYS] = days
+                filterParam = types.FILTER.NEWS
                 break
             }
-            case catalogs.CATALOG_KEYS.last_added_children: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.LAST_CHILDREN_DATE_ADDED
-                params[catalogs.QUERY.DAYS] = days
+            case types.CATALOG_KEYS.last_added_children: {
+                params[types.QUERY.SORT] = types.SORT.LAST_CHILDREN_DATE_ADDED
+                params[types.QUERY.DAYS] = days
                 break
             }
-            case catalogs.CATALOG_KEYS.new_releases_children: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.LAST_CHILD_PREMIERED
-                params[catalogs.QUERY.DAYS] = days
-                filterParam = catalogs.FILTER.NEWS_CHILDREN
+            case types.CATALOG_KEYS.new_releases_children: {
+                params[types.QUERY.SORT] = types.SORT.LAST_CHILD_PREMIERED
+                params[types.QUERY.DAYS] = days
+                filterParam = types.FILTER.NEWS_CHILDREN
                 break
             }
-            case catalogs.CATALOG_KEYS.new_releases_subs: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
-                params[catalogs.QUERY.LANG] = laguages
-                params[catalogs.QUERY.DAYS] = days
-                filterParam = catalogs.FILTER.NEWS_SUBS
+            case types.CATALOG_KEYS.new_releases_subs: {
+                params[types.QUERY.SORT] = types.SORT.DATE_ADDED
+                params[types.QUERY.LANG] = laguages
+                params[types.QUERY.DAYS] = days
+                filterParam = types.FILTER.NEWS_SUBS
                 break
             }
-            case catalogs.CATALOG_KEYS.most_watched: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.PLAY_COUNT
+            case types.CATALOG_KEYS.most_watched: {
+                params[types.QUERY.SORT] = types.SORT.PLAY_COUNT
                 break
             }
-            case catalogs.CATALOG_KEYS.popular: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.POPULARITY
+            case types.CATALOG_KEYS.popular: {
+                params[types.QUERY.SORT] = types.SORT.POPULARITY
                 break
             }
-            case catalogs.CATALOG_KEYS.trending: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.TRENDING
+            case types.CATALOG_KEYS.trending: {
+                params[types.QUERY.SORT] = types.SORT.TRENDING
                 break
             }
-            case catalogs.CATALOG_KEYS.last_added: {
-                params[catalogs.QUERY.SORT] = catalogs.SORT.DATE_ADDED
+            case types.CATALOG_KEYS.last_added: {
+                params[types.QUERY.SORT] = types.SORT.DATE_ADDED
                 break
             }
-            case catalogs.CATALOG_KEYS.genre: {
-                const genreKey = catalogs.GENRES.find(it => it.name == extra.genre)?.key
+            case types.CATALOG_KEYS.genre: {
+                const genreKey = types.GENRES.find(it => it.name == extra.genre)?.key
                 if (!genreKey) {
                     return undefined
                 }
-                params[catalogs.QUERY.SORT] = catalogs.SORT.YEAR
-                params[catalogs.QUERY.VALUE] = encodeURIComponent(genreKey)
-                filterParam = catalogs.FILTER.GENRE
+                params[types.QUERY.SORT] = types.SORT.YEAR
+                params[types.QUERY.VALUE] = encodeURIComponent(genreKey)
+                filterParam = types.FILTER.GENRE
                 break
             }
             default: {
                 if (!extra.search) {
                     return undefined
                 }
-                params[catalogs.QUERY.VALUE] = encodeURIComponent(extra.search)
-                params[catalogs.QUERY.SORT] = catalogs.SORT.SCORE
-                filterParam = catalogs.FILTER.SEARCH
+                params[types.QUERY.VALUE] = encodeURIComponent(extra.search)
+                params[types.QUERY.SORT] = types.SORT.SCORE
+                filterParam = types.FILTER.SEARCH
                 break
             }
         }
-        params[catalogs.QUERY.TYPE] = sccType
-        params[catalogs.QUERY.ORDER] = catalogs.ORDER.DESCENDING
-        params[catalogs.QUERY.SIZE] = settings.pageSize
+        params[types.QUERY.TYPE] = sccType
+        params[types.QUERY.ORDER] = types.ORDER.DESCENDING
+        params[types.QUERY.SIZE] = settings.pageSize
         if (extra.skip) {
-            params[catalogs.QUERY.FROM] = extra.skip
+            params[types.QUERY.FROM] = extra.skip
         }
         const ret = await scc.filter(filterParam, params)
         return ret

@@ -4,6 +4,7 @@ const helpers = require('../helpers/helpers.js')
 const env = require('../helpers/env.js')
 
 const catalogs = require('../logic/catalogs.js')
+const types = require('../logic/types.js')
 
 const logger = new Logger("manifest", true)
 
@@ -18,7 +19,7 @@ function manifest(req, res) {
         description: "Add-on to hook into SCC and Webshare VIP search",
         resources: ['stream', 'catalog', {
             name: "meta",
-            types: catalogs.SUPPORTED_TYPES,
+            types: types.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
         behaviorHints: {
@@ -26,7 +27,7 @@ function manifest(req, res) {
             configurationRequired: !settings.token || settings.token.length == 0
         },
         catalogs: catalogs.catalogsManifest(settings),
-        types: catalogs.SUPPORTED_TYPES,
+        types: types.SUPPORTED_TYPES,
     })
 }
 

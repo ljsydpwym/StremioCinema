@@ -6,6 +6,8 @@ const helpers = require('../helpers/helpers.js')
 const env = require('../helpers/env.js')
 const cypher = require('../helpers/cypher.js')
 
+const types = require('../logic/types.js')
+
 const Webshare = require('../api/webshare.js')
 const Tmdb = require('../api/tmdb.js')
 const SCC = require('../api/sc.js')
@@ -25,7 +27,7 @@ async function streams(req, res){
         const idParts = id.split(":")
         const mediaId = idParts[0];
         let scId;
-        if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
+        if (type === types.STREMIO_TYPE.SHOW || type === types.STREMIO_TYPE.ANIME) {
             scId = await getShow(mediaId, idParts[1], idParts[2])
         } else {
             scId = await getMovie(mediaId, idParts[1], idParts[2])
@@ -53,7 +55,7 @@ async function streams(req, res){
                 logger.log("episode found")
             } else {
                 try {
-                    const scFile = (await scc.search(mediaId, helpers.SCC_TYPE.SHOW)).hits.hits[0]
+                    const scFile = (await scc.search(mediaId, types.SCC_TYPE.SHOW)).hits.hits[0]
                     logger.log("scShow", scFile);
                     scId = (await scc.episode(scFile._id, season, episode))
                     logger.log("episode found")
@@ -62,7 +64,7 @@ async function streams(req, res){
                     const tmdbShow = (await tmdb.find(mediaId)).tv_results[0]
                     logger.log("tmdbShow", tmdbShow)
                     const search = tmdbShow.id
-                    const scShow = (await scc.service(search, helpers.SCC_TYPE.SHOW)).hits.hits[0]
+                    const scShow = (await scc.service(search, types.SCC_TYPE.SHOW)).hits.hits[0]
                     logger.log("scShow tmdb fallback", scShow);
                     scId = (await scc.episode(scShow._id, season, episode))
                     logger.log("episode found tmdb fallback search", search)
@@ -81,7 +83,7 @@ async function streams(req, res){
                 scId = helpers.getWithoutPrefix(mediaId);
             } else {
                 try {
-                    const scMovie = (await scc.search(mediaId, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
+                    const scMovie = (await scc.search(mediaId, types.SCC_TYPE.MOVIE)).hits.hits[0]
                     logger.log("scMovie", scMovie)
                     scId = scMovie._id
                     logger.log("movie found")
@@ -92,7 +94,7 @@ async function streams(req, res){
                     const tmdbMovie = tmdbInfo.movie_results[0]
                     logger.log("tmdbMovie", tmdbMovie)
                     const search = tmdbMovie.id
-                    const scMovie = (await scc.service(search, helpers.SCC_TYPE.MOVIE)).hits.hits[0]
+                    const scMovie = (await scc.service(search, types.SCC_TYPE.MOVIE)).hits.hits[0]
                     scId = scMovie._id
                     logger.log("movie not found - fallback search", search)
                 }

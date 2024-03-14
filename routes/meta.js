@@ -9,6 +9,7 @@ const env = require('../helpers/env.js')
 
 const catalogs = require('../logic/catalogs.js')
 const SccMeta = require('../logic/stremio.js')
+const types = require('../logic/types.js')
 
 const logger = new Logger("manifest", true)
 
@@ -27,14 +28,14 @@ async function meta(req, res) {
 
     const data = await scc.media(sccId);
     const meta = await sccMeta.createMeta(data, type, id);
-    if (type === helpers.STREMIO_TYPE.SHOW || type === helpers.STREMIO_TYPE.ANIME) {
+    if (type === types.STREMIO_TYPE.SHOW || type === types.STREMIO_TYPE.ANIME) {
         const episodes = await scc.episodes(sccId);
         if (!meta.videos) {
             meta.videos = episodes.map(it => sccMeta.createMetaEpisode(data, it))
         } else {
             meta.videos = sccMeta.insertIds(meta, data)
         }
-        meta.type = helpers.STREMIO_TYPE.SHOW
+        meta.type = types.STREMIO_TYPE.SHOW
     }
     return res.send({ meta });
 }

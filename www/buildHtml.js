@@ -1,4 +1,5 @@
 const { settingsLoader } = require('../helpers/settings.js')
+const types = require('../logic/types.js')
 
 function buildHtml() {
 
@@ -22,6 +23,17 @@ function buildHtml() {
 	settings.showVideoExtra == settings[showVideoExtra]
 	const showAudioExtra = "showAudioExtra"
 	settings.showAudioExtra == settings[showAudioExtra]
+	const catalogTypes = "catalogTypes"
+	settings.catalogTypes == settings[catalogTypes]
+	const catalogs = "catalogs"
+	settings.catalogs == settings[catalogs]
+
+	const catalogTypesValues = types.SUPPORTED_CATALOGS
+		.reduce((a, v) => ({ ...a, [v.key]: v.name }), {})
+
+	const catalogsValues = types.CATALOGS
+		.filter(it => it.key != types.CATALOG_KEYS.search)
+		.reduce((a, v) => ({ ...a, [v.key]: v.name }), {})
 
 	function renderInput(label, id, type, def, info) {
 		return `
@@ -33,11 +45,11 @@ function buildHtml() {
 		`
 	}
 
-	function renderInfo(info){
+	function renderInfo(info) {
 		return info ? `<div class="form-text">${info}</div>` : ''
 	}
 
-	function renderLabel(label, id){
+	function renderLabel(label, id) {
 		return `<label for="${id}">${label}</label>`
 	}
 
@@ -65,7 +77,19 @@ function buildHtml() {
 		`
 	}
 
-	function connecteVisibility(id, field){
+	function renderMultipleSelector(label, id, map, preselected, info) {
+		return `
+			<div class="">
+			${renderLabel(label, id)}
+				<select required class="form-select" multiple id="${id}" name="${id}" aria-label="multiple select example">
+					${Object.entries(map).map(entry => `<option value="${entry[0]}" ${preselected.includes(entry[0]) ? 'selected' : ''}>${entry[1]}</option>`).join("\n")}
+				</select>
+				${renderInfo(info)}
+			</div>
+		`
+	}
+
+	function connecteVisibility(id, field) {
 		return `
 			document.getElementById("${id}").style.display = "none"
 
@@ -75,14 +99,16 @@ function buildHtml() {
 		`
 	}
 
-	function resolveValueLoader(key, value){
-		switch(typeof value){
+	function resolveValueLoader(key, value) {
+		switch (typeof value) {
 			case 'boolean': return `document.getElementById("${key}").checked`
-			default: return `document.getElementById("${key}").value`
+			case 'string': return `document.getElementById("${key}").value`
+			case 'number': return `document.getElementById("${key}").value`
+			default: return `Array.from(document.getElementById('${key}').selectedOptions).map(({ value }) => value)`
 		}
 	}
 
-	function renderFormLoader(){
+	function renderFormLoader() {
 		return `
 			function getFormData(e) {
 				var settingsObject = {
@@ -148,15 +174,15 @@ function buildHtml() {
 					
 					<div id="tmdbOptinal">
 						${renderSelector("TMDB Primarny jazyk", tmdbMainLang, {
-							"cs-CZ": "CZ",
-							"sk-SK": "SK",
-							"en-US": "EN",
-						}, settings.tmdbMainLang, "Prvy jazyk pre data")}
+		"cs-CZ": "CZ",
+		"sk-SK": "SK",
+		"en-US": "EN",
+	}, settings.tmdbMainLang, "Prvy jazyk pre data")}
 						${renderSelector("TMDB Alternativny jazyk", tmdbFallbackLang, {
-							"cs-CZ": "CZ",
-							"sk-SK": "SK",
-							"en-US": "EN",
-						}, settings.tmdbFallbackLang, "Alternativny jazyk v pripade ze prvy nieje kompletny")}
+		"cs-CZ": "CZ",
+		"sk-SK": "SK",
+		"en-US": "EN",
+	}, settings.tmdbFallbackLang, "Alternativny jazyk v pripade ze prvy nieje kompletny")}
 					</div>
 
 					${renderInput("Pocet filmov na stranke", pageSize, "number", `${settings.pageSize}`, "Vyssie cislo sposobi pomalsie nacitanie")}
@@ -164,6 +190,9 @@ function buildHtml() {
 					${renderCheckbox("Zobrazit bitrate", showBitrate, settings.showBitrate)}
 					${renderCheckbox("Zobrazit video kodeky", showVideoExtra, settings.showVideoExtra)}
 					${renderCheckbox("Zobrazit audio kodeky", showAudioExtra, settings.showAudioExtra)}
+
+					${renderMultipleSelector("Podporovane typy", catalogTypes, catalogTypesValues, settings.catalogTypes)}
+					${renderMultipleSelector("Podporovane katalogy", catalogs, catalogsValues, settings.catalogs)}
 
 					<div class="d-grid gap-2 mb-3">
 						<button type="submit" class="btn btn-primary btn-lg">Instalovat</button>

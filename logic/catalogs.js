@@ -5,6 +5,8 @@ const types = require('./types.js')
 
 function catalogsManifest(params) {
     const settings = settingsLoader(params)
+    var supportedCatalogs = settings.catalogs
+    supportedCatalogs.push(types.CATALOG_KEYS.search)
     return settings.catalogTypes.flatMap(type => {
         return types.CATALOGS.filter(it => settings.catalogs.includes(it.key)).map(catalog => {
             var extraSupported = []
@@ -16,7 +18,7 @@ function catalogsManifest(params) {
             var generatedGenres = undefined
             if (catalog.genres == true) {
                 generatedGenres = types.GENRES
-                    .filter(it => explicit || !it.explicit)
+                    .filter(it => settings.allowExplicit || !it.explicit)
                     .map(it => it.name)
                 extras.push({
                     name: "genre", 

@@ -178,6 +178,21 @@ const SCC_TYPE = {
     ANIME: "anime",
 }
 
+const SUPPORTED_CATALOGS = [
+    {
+        key: STREMIO_TYPE.MOVIE,
+        name: "Filmy",
+    },
+    {
+        key: STREMIO_TYPE.SHOW,
+        name: "Serialy",
+    },
+    {
+        key: STREMIO_TYPE.ANIME,
+        name: "Anime",
+    },
+]
+
 const SUPPORTED_TYPES = [STREMIO_TYPE.MOVIE, STREMIO_TYPE.SHOW, STREMIO_TYPE.ANIME]
 
 module.exports = {
@@ -190,5 +205,6 @@ module.exports = {
     SORT,
     GENRES,
     STREMIO_TYPE,
+    SUPPORTED_CATALOGS,
     SCC_TYPE
 }

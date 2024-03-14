@@ -19,8 +19,8 @@ function settingsLoader(input) {
         showBitrate: params?.showBitrate ?? true,
         showVideoExtra: params?.showVideoExtra ?? true,
         showAudioExtra: params?.showAudioExtra ?? false,
-        catalogTypes: params?.types ?? [types.STREMIO_TYPE.MOVIE, types.STREMIO_TYPE.SHOW, types.STREMIO_TYPE.ANIME],
-        catalogs: params?.catalogs ?? [types.CATALOG_KEYS.trending, types.CATALOG_KEYS.popular, types.CATALOG_KEYS.most_watched, types.CATALOG_KEYS.new_releases, types.CATALOG_KEYS.new_releases_dubbed, types.CATALOG_KEYS.new_releases_subs, types.CATALOG_KEYS.last_added],
+        catalogTypes: params?.catalogTypes ?? [types.STREMIO_TYPE.MOVIE, types.STREMIO_TYPE.SHOW, types.STREMIO_TYPE.ANIME],
+        catalogs: params?.catalogs ?? [types.CATALOG_KEYS.trending, types.CATALOG_KEYS.popular, types.CATALOG_KEYS.most_watched, types.CATALOG_KEYS.new_releases, types.CATALOG_KEYS.new_releases_dubbed, types.CATALOG_KEYS.new_releases_subs, types.CATALOG_KEYS.last_added, types.CATALOG_KEYS.genre],
         token: params?.token ?? params,
     }
 }
