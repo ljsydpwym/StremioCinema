@@ -8,10 +8,13 @@ function settingsLoader(input) {
         params = input
     }
     return {
-        mainLang: params.mainLang ?? "sk-SK",
-        fallbackLang: params.fallbackLang ?? "cs-CZ",
-        additionalInfo: params.additionalInfo ?? false,
-        explicit: params.explicit ?? false,
+        tmdb: {
+            mainLang: params.mainLang ?? "sk-SK",
+            fallbackLang: params.fallbackLang ?? "cs-CZ",
+            enabled: params.loadTmdb ?? false,
+        },
+        allowExplicit: params.explicit ?? false,
+        pageSize: params.pageSize ?? 30,
         token: params.token ?? params,
     }
 }

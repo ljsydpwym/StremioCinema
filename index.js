@@ -76,7 +76,7 @@ function manifesf(req, res) {
             types: catalogs.SUPPORTED_TYPES,
             idPrefix: [helpers.PREFIX],
         }],
-        catalogs: catalogs.catalogsManifest(settings.explicit),
+        catalogs: catalogs.catalogsManifest(settings.allowExplicit),
         types: catalogs.SUPPORTED_TYPES,
     })
 }
@@ -123,7 +123,7 @@ async function catalog(req, res) {
             .filter(([_, it]) => {
                 const genres = it._source.info_labels.genre
                 const isExplicit = genres.includes("Erotic") || genres.includes("Pornographic") || it._source.tags.includes("porno")
-                return settings.explicit || !isExplicit
+                return settings.allowExplicit || !isExplicit
             })
             .map(([_, data]) => sccMeta.createMetaPreview(data, stremioType))
     )
