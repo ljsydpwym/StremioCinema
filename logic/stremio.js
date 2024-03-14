@@ -1,7 +1,9 @@
-const helpers = require('./helpers.js');
-const call = require('./api.js');
-const Logger = require('./logger.js');
-const settings = require('./settings.js');
+const addons = require('../api/addons.js');
+const call = require('../api/api.js');
+
+const helpers = require('../helpers/helpers.js');
+const Logger = require('../helpers/logger.js');
+const settings = require('../helpers/settings.js');
 
 const logger = new Logger("Stremio", false)
 
@@ -28,15 +30,15 @@ class SccMeta {
 			logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
 			if (!alternativeMeta && tmdbId) {
 				logger.log("using TMDB meta")
-				alternativeMeta = await helpers.metaTmdb(type, tmdbId, this.settings.tmdb.mainLang)
+				alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdb.mainLang)
 				if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
 					logger.log("main language empty description fallback to fallback")
-					alternativeMeta = await helpers.metaTmdb(type, tmdbId, this.settings.tmdb.fallbackLang)
+					alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdb.fallbackLang)
 				}
 			}
 			if (!alternativeMeta && imdbId) {
 				logger.log("using Cinemata meta")
-				alternativeMeta = await helpers.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
+				alternativeMeta = await addons.metaCinemata(type == helpers.STREMIO_TYPE.ANIME ? helpers.STREMIO_TYPE.SHOW : type, imdbId)
 			}
 		}
 		if (!alternativeMeta) {

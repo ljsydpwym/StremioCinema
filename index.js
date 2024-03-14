@@ -1,17 +1,20 @@
 require('dotenv').config()
-const Logger = require('./logger.js')
-const SccMeta = require('./stremio.js')
-const Webshare = require('./webshare.js')
-const Tmdb = require('./tmdb.js')
-const SCC = require('./sc.js')
-const qs = require('querystring')
-const env = require('./env.js')
-const cypher = require('./cypher.js')
-const helpers = require('./helpers.js')
-const sentry = require('./sentry.js')
-const catalogs = require('./catalogs.js')
-const {settingsLoader} = require('./settings.js')
 
+const Webshare = require('./api/webshare.js')
+const Tmdb = require('./api/tmdb.js')
+const SCC = require('./api/sc.js')
+
+const Logger = require('./helpers/logger.js')
+const env = require('./helpers/env.js')
+const cypher = require('./helpers/cypher.js')
+const helpers = require('./helpers/helpers.js')
+const sentry = require('./helpers/sentry.js')
+const {settingsLoader} = require('./helpers/settings.js')
+
+const SccMeta = require('./logic/stremio.js')
+const catalogs = require('./logic/catalogs.js')
+
+const qs = require('querystring')
 const express = require('express')
 const apicache = require('apicache');
 const cors = require('cors')
@@ -403,12 +406,8 @@ async function url(req, res) {
     res.redirect(decrypted)
 }
 
-function index(req, res) {
-    res.sendFile(path.join(__dirname, '/index.html'))
-}
-
 function configure(req, res) {
-    res.sendFile(path.join(__dirname, '/configure.html'))
+    res.sendFile(path.join(__dirname, 'www/configure.html'))
 }
 
 const port = env.PORT

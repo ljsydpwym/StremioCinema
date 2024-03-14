@@ -1,9 +1,11 @@
-const Logger = require('./logger.js')
-const call = require('./api.js');
 const crypto = require('crypto')
-const md5crypt = require('./crypt.js')
-const getPass = require("./pass.js");
-const helpers = require('./helpers.js')
+
+const call = require('./api.js');
+
+const Logger = require('../helpers/logger.js')
+const md5crypt = require('../helpers/crypt.js')
+const getPass = require("../helpers/pass.js");
+const helpers = require('../helpers/helpers.js')
 
 const logger = new Logger("Webshare", false)
 

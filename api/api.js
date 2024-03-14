@@ -1,4 +1,4 @@
-const Logger = require('./logger.js')
+const Logger = require('../helpers/logger.js')
 const needle = require('needle');
 
 const logger = new Logger("CALL", true)

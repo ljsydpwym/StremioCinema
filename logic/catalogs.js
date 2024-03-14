@@ -1,4 +1,4 @@
-const helpers = require('./helpers.js')
+const helpers = require('../helpers/helpers.js')
 
 const FILTER = {
     STARTS_WITH_SIMPLE: 'startsWithSimple',

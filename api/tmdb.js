@@ -1,6 +1,6 @@
 const call = require('./api.js');
-const helpers = require('./helpers.js');
-const env = require('./env.js');
+const helpers = require('../helpers/helpers.js');
+const env = require('../helpers/env.js');
 
 class Tmdb {
 
