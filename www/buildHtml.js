@@ -113,7 +113,7 @@ function buildHtml() {
 			function getFormData(e) {
 				var settingsObject = {
 					${Object.entries(settings).map(entry => `${entry[0]}: ${resolveValueLoader(entry[0], entry[1])}`).join(",\n")},
-					token: btoa(\`\${ getValue("name") }:\${ getValue("password") } \`)
+					token: btoa(\`\${getValue("name")}:\${getValue("password")}\`)
 				}
 				return encodeURIComponent(JSON.stringify(settingsObject));
 			}
