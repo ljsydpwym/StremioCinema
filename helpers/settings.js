@@ -7,14 +7,13 @@ function settingsLoader(input) {
     catch (error) {
         params = input
     }
+    //NEVER REMOVE OR REORGANIZE FIELDS - this will create issue with backward compatibility - ONLY ADD NEW
     return {
-        tmdb: {
-            enabled: params?.loadTmdb ?? false,
-            mainLang: params?.mainLang ?? "sk-SK",
-            fallbackLang: params?.fallbackLang ?? "cs-CZ",
-        },
-        allowExplicit: params?.explicit ?? false,
-        pageSize: params?.pageSize ?? 30,
+        tmdbEnabled: params?.tmdbEnabled ?? false,
+        tmdbMainLang: params?.tmdbMainLang ?? "sk-SK",
+        tmdbFallbackLang: params?.tmdbFallbackLang ?? "cs-CZ",
+        allowExplicit: params?.allowExplicit ?? false,
+        pageSize: params?.pageSize ?? 10,
         token: params?.token ?? params,
     }
 }

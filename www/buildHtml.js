@@ -1,4 +1,21 @@
+const { settingsLoader } = require('../helpers/settings.js')
+
 function buildHtml() {
+
+	const settings = settingsLoader("token")
+	delete settings.token
+
+	//typesafe way for keys to exist, create both line for new keys
+	const tmdbEnabled = "tmdbEnabled"
+	settings.tmdbEnabled == settings[tmdbEnabled]
+	const tmdbMainLang = "tmdbMainLang"
+	settings.tmdbMainLang == settings[tmdbMainLang]
+	const tmdbFallbackLang = "tmdbFallbackLang"
+	settings.tmdbFallbackLang == settings[tmdbFallbackLang]
+	const allowExplicit = "allowExplicit"
+	settings.allowExplicit == settings[allowExplicit]
+	const pageSize = "pageSize"
+	settings.pageSize == settings[pageSize]
 
 	function renderInput(label, id, type, def, info) {
 		return `
@@ -52,6 +69,25 @@ function buildHtml() {
 		`
 	}
 
+	function resolveValueLoader(key, value){
+		switch(typeof value){
+			case 'boolean': return `document.getElementById("${key}").checked`
+			default: return `document.getElementById("${key}").value`
+		}
+	}
+
+	function renderFormLoader(){
+		return `
+			function getFormData(e) {
+				var settingsObject = {
+					${Object.entries(settings).map(entry => `${entry[0]}: ${resolveValueLoader(entry[0], entry[1])}`).join(",\n")},
+					token: btoa(\`\${ getValue("name") }:\${ getValue("password") } \`)
+				}
+				return encodeURIComponent(JSON.stringify(settingsObject));
+			}
+		`
+	}
+
 	return `
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -73,21 +109,9 @@ function buildHtml() {
 		function getChecked(name) {
 			return document.getElementById(name).checked
 		}
-		function getFormData(e) {
-			var settingsObject = {
-				tmdb: {
-					enabled: getChecked("tmdbEnabled"),
-					mainLang: getValue("tmdbMainLang"),
-					fallbackLang: getValue("tmdbFallbackLang"),
-				},
-				allowExplicit: getChecked("allowExplicit"),
-				pageSize: getValue("pageSize"),
-				token: btoa(\`\${ getValue("name") }:\${ getValue("password") } \`)
-			}
-			return encodeURIComponent(JSON.stringify(settingsObject));
-		}
+		${renderFormLoader()}
 		document.addEventListener('DOMContentLoaded', function () {
-			${connecteVisibility("tmdbOptinal", "tmdbEnabled")}
+			${connecteVisibility("tmdbOptinal", tmdbEnabled)}
 			document.getElementById('theform').onsubmit = function (e) {
 				e.preventDefault(); // Prevent the default form submission
 				var formData = getFormData(e);
@@ -114,23 +138,23 @@ function buildHtml() {
 				<form id="theform">
 					${renderInput("Meno", "name", "text")}
 					${renderInput("Heslo", "password", "password")}
-					${renderCheckbox("TMDB?", "tmdbEnabled", false, "Kvalitnejsie data za cenu dlhsieho nacitania")}
+					${renderCheckbox("TMDB?", tmdbEnabled, settings.tmdbEnabled, "Kvalitnejsie data za cenu dlhsieho nacitania")}
 					
 					<div id="tmdbOptinal">
-						${renderSelector("TMDB Primarny jazyk", "tmdbMainLang", {
-							cs_CZ: "CZ",
-							sk_SK: "SK",
-							en_US: "EN",
-						}, "cs_CZ", "Prvy jazyk pre data")}
-						${renderSelector("TMDB Alternativny jazyk", "tmdbFallbackLang", {
-							cs_CZ: "CZ",
-							sk_SK: "SK",
-							en_US: "EN",
-						}, "sk_SK", "Alternativny jazyk v pripade ze prvy nieje kompletny")}
+						${renderSelector("TMDB Primarny jazyk", tmdbMainLang, {
+							"cs-CZ": "CZ",
+							"sk-SK": "SK",
+							"en-US": "EN",
+						}, settings.tmdbMainLang, "Prvy jazyk pre data")}
+						${renderSelector("TMDB Alternativny jazyk", tmdbFallbackLang, {
+							"cs-CZ": "CZ",
+							"sk-SK": "SK",
+							"en-US": "EN",
+						}, settings.tmdbFallbackLang, "Alternativny jazyk v pripade ze prvy nieje kompletny")}
 					</div>
 
-					${renderCheckbox("Explicitny obsah?", "allowExplicit", false)}
-					${renderInput("Pocet filmov na stranke", "pageSize", "number", "10", "Vyssie cislo sposobi pomalsie nacitanie")}
+					${renderCheckbox("Explicitny obsah?", allowExplicit, settings.allowExplicit)}
+					${renderInput("Pocet filmov na stranke", pageSize, "number", `${settings.pageSize}`, "Vyssie cislo sposobi pomalsie nacitanie")}
 
 					<div class="d-grid gap-2 mb-3">
 						<button type="submit" class="btn btn-primary btn-lg">Instalovat</button>

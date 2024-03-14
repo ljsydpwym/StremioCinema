@@ -25,14 +25,14 @@ class SccMeta {
 		const imdbId = scRaw?.services?.imdb
 		const sccMeta = alternative()
 		var alternativeMeta
-		if(this.settings.tmdb.enabled){
+		if(this.settings.tmdbEnabled){
 			logger.log("cinemataIfPossible", type, sccMeta.name, sccMeta.id)
 			if (!alternativeMeta && tmdbId) {
 				logger.log("using TMDB meta")
-				alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdb.mainLang)
+				alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdbMainLang)
 				if (!alternativeMeta?.description || alternativeMeta?.description.length == 0) {
 					logger.log("main language empty description fallback to fallback")
-					alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdb.fallbackLang)
+					alternativeMeta = await addons.metaTmdb(type, tmdbId, this.settings.tmdbFallbackLang)
 				}
 			}
 			if (!alternativeMeta && imdbId) {
