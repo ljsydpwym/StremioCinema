@@ -3,6 +3,7 @@ require('dotenv').config()
 const env = require('./helpers/env.js')
 const sentry = require('./helpers/sentry.js')
 const cache = require('./helpers/cache.js')
+const certs = require('./helpers/certs.js')
 
 const {manifest} = require('./routes/manifest.js')
 const {catalog} = require('./routes/catalog.js')
@@ -37,10 +38,11 @@ app.get(baseUrl + '/configure', configure)
 
 cache.initRoutes(app)
 
-app.listen(port, function () {
-    console.log(`legacy token http://127.0.0.1:${port}/1/${env.WS_TOKEN}/manifest.json`)
-    console.log(`http://127.0.0.1:${port}/configure`)
-    console.log(`http://127.0.0.1:${port}/manifest.json`)
+certs.start(app, port, env.HTTPS, function () {
+    let base = `http${env.HTTPS ? "s" : ""}://127.0.0.1:${port}`
+    console.log(`legacy token ${base}/1/${env.WS_TOKEN}/manifest.json`)
+    console.log(`${base}/configure`)
+    console.log(`${base}/manifest.json`)
 })
 
 module.exports = app

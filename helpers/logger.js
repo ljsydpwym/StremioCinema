@@ -13,7 +13,7 @@ class Logger {
         }
     }
 
-    logDebug(message, ...optionalParams) {
+    logError(message, ...optionalParams) {
         if (env.DEBUG) {
             console.log(this.tag + message, ...optionalParams)
         }
