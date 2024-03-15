@@ -120,7 +120,7 @@ async function streams(req, res){
                     .map(it => helpers.format(it.language))
                     .sort((a, b) => a.localeCompare(b)))];
     
-                const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)} ${settings.showBitrate ? helpers.formatBitrate(it) : ''}`
+                const name = `💾\tSize:\t\t\t${helpers.bytesToSize(it.size)} ${settings.showDuration ? helpers.formatDuration(it) : ''}${settings.showBitrate ? helpers.formatBitrate(it) : ''}`
                 const video = `📹\tVideo:\t\t${videoHeight} ${settings.showVideoExtra ? videoHDR : ''}`
                 const audio = audios ? "🔊\tAudio:\t\t" + audios.join(",") : undefined
                 const subtitle = subtitles ? "💬\tSubtitles:\t" + subtitles.join(",") : undefined

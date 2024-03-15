@@ -19,6 +19,8 @@ function buildHtml() {
 	settings.pageSize == settings[pageSize]
 	const showBitrate = "showBitrate"
 	settings.showBitrate == settings[showBitrate]
+	const showDuration = "showDuration"
+	settings.showDuration == settings[showDuration]
 	const showVideoExtra = "showVideoExtra"
 	settings.showVideoExtra == settings[showVideoExtra]
 	const showAudioExtra = "showAudioExtra"
@@ -188,6 +190,7 @@ function buildHtml() {
 					${renderInput("Pocet filmov na stranke", pageSize, "number", `${settings.pageSize}`, "Vyssie cislo sposobi pomalsie nacitanie")}
 					${renderCheckbox("Explicitny obsah", allowExplicit, settings.allowExplicit)}
 					${renderCheckbox("Zobrazit bitrate", showBitrate, settings.showBitrate)}
+					${renderCheckbox("Zobrazit dlzku", showDuration, settings.showDuration)}
 					${renderCheckbox("Zobrazit video kodeky", showVideoExtra, settings.showVideoExtra)}
 					${renderCheckbox("Zobrazit audio kodeky", showAudioExtra, settings.showAudioExtra)}
 

@@ -9,7 +9,7 @@ function settingsLoader(input) {
     catch (error) {
         params = input
     }
-    //NEVER REMOVE OR REORGANIZE FIELDS - this will create issue with backward compatibility - ONLY ADD NEW
+    //NEVER REMOVE FIELDS - this will create issue with backward compatibility - ONLY ADD NEW
     return {
         tmdbEnabled: params?.tmdbEnabled ?? false,
         tmdbMainLang: params?.tmdbMainLang ?? "sk-SK",
@@ -17,6 +17,7 @@ function settingsLoader(input) {
         allowExplicit: params?.allowExplicit ?? false,
         pageSize: params?.pageSize ?? 10,
         showBitrate: params?.showBitrate ?? true,
+        showDuration: params?.showDuration ?? false,
         showVideoExtra: params?.showVideoExtra ?? true,
         showAudioExtra: params?.showAudioExtra ?? false,
         catalogTypes: params?.catalogTypes ?? [types.STREMIO_TYPE.MOVIE, types.STREMIO_TYPE.SHOW, types.STREMIO_TYPE.ANIME],

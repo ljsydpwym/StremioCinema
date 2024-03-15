@@ -22,6 +22,31 @@ function formatBitrate(stream){
    return `[${convert_bitrate(stream.size / stream.video[0].duration * 8)}]`
 }
 
+function formatDuration(stream){
+   return `[${timeConversion(stream.video[0].duration)}] `
+}
+
+function timeConversion(seconds) {
+    var duration = seconds * 1000
+    const portions = [];
+  
+    const msInHour = 1000 * 60 * 60;
+    const hours = Math.trunc(duration / msInHour);
+    if (hours > 0) {
+      portions.push(hours + 'h');
+      duration = duration - (hours * msInHour);
+    }
+  
+    const msInMinute = 1000 * 60;
+    const minutes = Math.trunc(duration / msInMinute);
+    if (minutes > 0) {
+      portions.push(minutes + 'm');
+      duration = duration - (minutes * msInMinute);
+    }
+  
+    return portions.join('');
+  }
+
 function convert_bitrate(mbit) {
     if (mbit == 0 || mbit == null) {
         return 0;
@@ -113,6 +138,7 @@ module.exports = {
     formatHDR,
     PREFIX,
     formatAudio,
+    formatDuration,
     formatAudioExtra,
     formatBitrate,
 }
