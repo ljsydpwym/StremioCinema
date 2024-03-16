@@ -80,7 +80,7 @@ async function catalog(req, res) {
                 break
             }
             case types.CATALOG_KEYS.new_releases: {
-                params[types.QUERY.SORT] = types.SORT.DATE_ADDED
+                params[types.QUERY.SORT] = types.SORT.PREMIERED
                 params[types.QUERY.DAYS] = days
                 filterParam = types.FILTER.NEWS
                 break
