@@ -85,7 +85,7 @@ class SCC {
 		);
 	}
 
-	async callInternal(path, params = {}, additional = undefined) {
+	async callInternal(path, params = {}, additional = {}) {
 		const queries = (Object.keys(additional).length > 0 ? helpers.queries(additional) + "&" : "") + helpers.queries({ ...params, access_token: env.SC_TOKEN })
 		return (await call(
 			`get`,
