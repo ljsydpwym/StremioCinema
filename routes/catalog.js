@@ -68,12 +68,15 @@ async function catalog(req, res) {
 
     async function catalogsFetch(sccType, filter, extra) {
         const days = 365
-        const laguages = "sk"
+        const languageSk = "sk"
+        const languageCz = "cs"
         var params = {}
+        var additional = {}
         var filterParam = types.FILTER.ALL
         switch (filter) {
             case types.CATALOG_KEYS.new_releases_dubbed: {
-                params[types.QUERY.LANG] = laguages
+                params[types.QUERY.LANG] = languageSk
+                additional[types.QUERY.LANG] = languageCz
                 params[types.QUERY.SORT] = types.SORT.LANG_DATE_ADDED
                 params[types.QUERY.DAYS] = days
                 filterParam = types.FILTER.NEWS_DUBBED
@@ -98,7 +101,8 @@ async function catalog(req, res) {
             }
             case types.CATALOG_KEYS.new_releases_subs: {
                 params[types.QUERY.SORT] = types.SORT.DATE_ADDED
-                params[types.QUERY.LANG] = laguages
+                params[types.QUERY.LANG] = languageSk
+                additional[types.QUERY.LANG] = languageCz
                 params[types.QUERY.DAYS] = days
                 filterParam = types.FILTER.NEWS_SUBS
                 break
@@ -145,7 +149,7 @@ async function catalog(req, res) {
         if (extra.skip) {
             params[types.QUERY.FROM] = extra.skip
         }
-        const ret = await scc.filter(filterParam, params)
+        const ret = await scc.filter(filterParam, params, additional)
         return ret
     }
 

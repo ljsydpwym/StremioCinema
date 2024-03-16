@@ -10,8 +10,8 @@ class SCC {
 		this.settings = settings.settingsLoader(params)
 	}
 	
-	async filter(filter, params) {
-		const res = await this.callInternal(`/filter/v2/${filter}`, params)
+	async filter(filter, params, additional) {
+		const res = await this.callInternal(`/filter/v2/${filter}`, params, additional)
 		const ret = JSON.parse(res)
 		return ret
 	}	
@@ -85,8 +85,8 @@ class SCC {
 		);
 	}
 
-	async callInternal(path, params = {}) {
-		const queries = helpers.queries({ ...params, access_token: env.SC_TOKEN })
+	async callInternal(path, params = {}, additional = undefined) {
+		const queries = (Object.keys(additional).length > 0 ? helpers.queries(additional) + "&" : "") + helpers.queries({ ...params, access_token: env.SC_TOKEN })
 		return (await call(
 			`get`,
 			`https://plugin.sc2.zone/api/media${path}`,
