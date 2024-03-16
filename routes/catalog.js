@@ -67,7 +67,7 @@ async function catalog(req, res) {
 
 
     async function catalogsFetch(sccType, filter, extra) {
-        const days = 100000
+        const days = 365
         const laguages = "sk"
         var params = {}
         var filterParam = types.FILTER.ALL
@@ -80,7 +80,7 @@ async function catalog(req, res) {
                 break
             }
             case types.CATALOG_KEYS.new_releases: {
-                params[types.QUERY.SORT] = types.SORT.PREMIERED
+                params[types.QUERY.SORT] = types.SORT.DATE_ADDED
                 params[types.QUERY.DAYS] = days
                 filterParam = types.FILTER.NEWS
                 break
