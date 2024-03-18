@@ -67,7 +67,7 @@ async function catalog(req, res) {
 
 
     async function catalogsFetch(sccType, filter, extra) {
-        const days = 365
+        const days = 730
         const languageSk = "sk"
         const languageCz = "cs"
         var params = {}
