@@ -1,5 +1,6 @@
 const { settingsLoader } = require('../helpers/settings.js')
 const types = require('../logic/types.js')
+const env = require('../helpers/env.js')
 
 function buildHtml() {
 
@@ -165,9 +166,14 @@ function buildHtml() {
 			<div class="col-md-6">
 				<div class="banner mb-3 p-3 text-center">
 					<h1>Stremio Cinema</h1>
-					<p>v1.0.0</p>
-					<p> Ak chcete pomocts s vyvojom alebo vytvorit ticket: <a
-						href="https://github.com/ljsydpwym/StremioCinema"><i>GitHub</i></a></p>
+					<a data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">${env.VERSION}</a>
+					<p> Ak chcete pomocts s vyvojom alebo vytvorit ticket: 
+					<a href="https://github.com/ljsydpwym/StremioCinema"><i>GitHub</i></a></p>
+				</div>
+				<div class="collapse" id="collapseExample" style="margin-bottom: 1rem">
+					<div class="card card-body">
+						<p>1.0.1 - Zmeneny pocet ziskanych epizod z 1000 na 10000 kvoli velkym serialom</p>
+					</div>
 				</div>
 				<form id="theform">
 					${renderInput("Meno", "name", "text")}
@@ -197,7 +203,7 @@ function buildHtml() {
 					${renderMultipleSelector("Podporovane typy", catalogTypes, catalogTypesValues, settings.catalogTypes)}
 					${renderMultipleSelector("Podporovane katalogy", catalogs, catalogsValues, settings.catalogs)}
 
-					<div class="d-grid gap-2 mb-3">
+					<div class="d-grid gap-2 mb-3" style="margin-top: 1rem">
 						<button type="submit" class="btn btn-primary btn-lg">Instalovat</button>
 					</div>
 

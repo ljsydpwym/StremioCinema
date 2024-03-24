@@ -14,7 +14,7 @@ function manifest(req, res) {
     res.setHeader('Content-Type', 'application/json')
     res.send({
         id: env.PLUGIN_ID,
-        version: '1.0.0',
+        version: env.VERSION,
         name: env.PLUGIN_NAME,
         description: "Add-on to hook into SCC and Webshare VIP search",
         resources: ['stream', 'catalog', {

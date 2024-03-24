@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000
 const SENTRY_DSN = process.env.SENTRY_DSN
 const WS_TOKEN = process.env.WS_TOKEN || ":token"
 const HTTPS = toBoolean(process.env.HTTPS, false)
+const VERSION = "1.0.1"
 
 module.exports = {
     SC_TOKEN,
@@ -31,5 +32,6 @@ module.exports = {
     SENTRY_DSN,
     WS_TOKEN,
     CACHE,
-    HTTPS
+    HTTPS,
+    VERSION
 }

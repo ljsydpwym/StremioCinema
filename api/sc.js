@@ -75,7 +75,7 @@ class SCC {
 		return JSON.parse(await this.callInternal(`/filter/v2/parent`, {
 			value: id,
 			sort: "episode",
-			size: 1000
+			size: 10000
 		}))
 	}
 
