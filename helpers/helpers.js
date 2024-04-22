@@ -7,7 +7,7 @@ function formatAudio(value) {
 }
 
 function formatAudioExtra(value) {
-    return `[${format(value.codec)} ${formatChannel(value.channels)}]`
+    return ` [${format(value.codec)} ${formatChannel(value.channels)}]`
 }
 
 function formatChannel(value){
