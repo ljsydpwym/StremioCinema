@@ -23,6 +23,7 @@ app.use(cors())
 const port = env.PORT
 const baseUrl = '/1/:token'
 
+app.enable('trust proxy')
 app.get(baseUrl + '/manifest.json', cache.caching(), manifest)
 app.get('/manifest.json', cache.caching(), manifest)
 
