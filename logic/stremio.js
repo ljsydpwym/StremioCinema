@@ -114,7 +114,7 @@ class SccMeta {
 		const universalMeta = this.createUniversalMeta(data)
 		const premiere = new Date(universalMeta.label.premiered)
 		const imdbLogo = universalShowMeta.imdbId ? `${this.META_HUB_EPISODES}/${universalShowMeta.imdbId}/${universalMeta.label.season}/${universalMeta.label.episode}/w780.jpg` : null
-		premiere.setHours(23, 59, 59)
+		premiere.setHours(20, 0, 0)
 		const ret = {
 			id: helpers.getWithPrefix(`${data.root_parent}:${universalMeta.label.season}:${universalMeta.label.episode}`),
 			title: universalMeta.name || `Episode ${universalMeta.label.episode}`,
