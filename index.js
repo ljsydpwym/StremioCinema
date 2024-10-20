@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const env = require('./helpers/env.js')
-const sentry = require('./helpers/sentry.js')
+// const sentry = require('./helpers/sentry.js')
 const cache = require('./helpers/cache.js')
 const certs = require('./helpers/certs.js')
 
@@ -16,7 +16,7 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 
-sentry.init(app)
+// sentry.init(app)
 
 app.use(cors())
 
