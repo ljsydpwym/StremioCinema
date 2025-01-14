@@ -1,8 +1,17 @@
-const { createHash } = require('crypto');
+const { createHash, randomBytes } = require('crypto');
 
-function getPass(stream) {
-    var keys = Object['keys'](stream).sort();
-    return createHash('sha256').update(stream[keys[0x8]] + stream[keys[0x4]]).digest('hex');
+function hashPassword(password) {
+    const salt = randomBytes(16).toString('hex');
+    const hash = createHash('sha256').update(password + salt).digest('hex');
+    return { salt, hash };
 }
 
-module.exports = getPass;
+function verifyPassword(password, salt, hash) {
+    const hashToVerify = createHash('sha256').update(password + salt).digest('hex');
+    return hash === hashToVerify;
+}
+
+module.exports = {
+    hashPassword,
+    verifyPassword
+};

@@ -1,5 +1,8 @@
 function format(value) {
-    return value ? value.trim().toUpperCase() : ''
+    if (typeof value === 'string') {
+        return value.trim();
+    }
+    return value;
 }
 
 function formatAudio(value) {
@@ -126,6 +129,23 @@ function queries(queries) {
     return Object.keys(queries).map(key => `${key}=${queries[key]}`).join("&")
 }
 
+function isValidUrl(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function parseJson(jsonString) {
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        throw new Error('Invalid JSON string');
+    }
+}
+
 module.exports = {
     format,
     formatHeight,
@@ -141,4 +161,6 @@ module.exports = {
     formatDuration,
     formatAudioExtra,
     formatBitrate,
+    isValidUrl,
+    parseJson
 }

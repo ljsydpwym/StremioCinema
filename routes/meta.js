@@ -1,45 +1,32 @@
-const qs = require('querystring')
+const qs = require('querystring');
+const Logger = require('../helpers/logger.js');
+const call = require('../api.js');
+const SCC = require('../api/sc.js');
 
-const SCC = require('../api/sc.js')
+const logger = new Logger("META", true);
 
-const Logger = require('../helpers/logger.js')
-const {settingsLoader} = require('../helpers/settings.js')
-const helpers = require('../helpers/helpers.js')
-const env = require('../helpers/env.js')
-
-const catalogs = require('../logic/catalogs.js')
-const SccMeta = require('../logic/stremio.js')
-const types = require('../logic/types.js')
-
-const logger = new Logger("manifest", true)
-
-async function meta(req, res) {
-    const { type, id, token } = req.params
-    const settings = settingsLoader(token)
-    const sccMeta = new SccMeta(settings)
-    const scc = new SCC()
-    logger.log("meta", req.params)
-
-    if (!helpers.startWithPrefix(id)) {
-        return res.status(404).send("Not found");
-    }
-
-    let sccId = helpers.getWithoutPrefix(id);
-
-    const data = await scc.media(sccId);
-    const meta = await sccMeta.createMeta(data, type, id);
-    if (type === types.STREMIO_TYPE.SHOW || type === types.STREMIO_TYPE.ANIME) {
-        const episodes = await scc.episodes(sccId);
-        if (!meta.videos) {
-            meta.videos = episodes.map(it => sccMeta.createMetaEpisode(data, it))
+async function getMeta(type, id) {
+    try {
+        const url = `https://webshare.cz/api/meta/${type}/${id}.json`;
+        const response = await call('get', url);
+        if (response.statusCode === 200 && response.body && response.body.meta) {
+            return response.body.meta;
         } else {
-            meta.videos = sccMeta.insertIds(meta, data)
+            throw new Error(`Failed to fetch meta from ${url}`);
         }
-        meta.type = types.STREMIO_TYPE.SHOW
+    } catch (error) {
+        logger.error(`Error fetching meta: ${error.message}`);
+        throw error;
     }
-    return res.send({ meta });
 }
 
-module.exports = {
-    meta
-}
+module.exports = async (req, res) => {
+    const { type, id } = req.params;
+    try {
+        const meta = await getMeta(type, id);
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({ meta }));
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+};

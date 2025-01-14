@@ -1,25 +1,32 @@
 const fs = require("fs");
 const https = require("https");
-const Logger = require('../helpers/logger.js');
+const path = require("path");
+const env = require("./env.js");
+const Logger = require("./logger.js");
 
-const logger = new Logger("certs", false)
+const logger = new Logger("CERTS", true);
 
-function start(app, port, isHttps, listener){
-    logger.log(`start on port:${port} with https:${isHttps}`)
-    try{
-        if(isHttps == true){
-            const key = fs.readFileSync("certs/key.pem", "utf-8");
-            const cert = fs.readFileSync("certs/cert.pem", "utf-8");
-            https.createServer({ key, cert }, app).listen(port, listener);
-        }else{
-            app.listen(port, listener)
-        }
-    }catch(e){
-        logger.logError("HTTPS failed, fallbacking to http")
-        app.listen(port, listener)
+function loadCert(filePath) {
+    try {
+        return fs.readFileSync(filePath);
+    } catch (error) {
+        logger.error(`Error loading certificate from ${filePath}: ${error.message}`);
+        throw error;
+    }
+}
+
+function start(app, port, useHttps, callback) {
+    if (useHttps) {
+        const certOptions = {
+            key: loadCert(path.join(__dirname, "..", "certs", "key.pem")),
+            cert: loadCert(path.join(__dirname, "..", "certs", "cert.pem")),
+        };
+        https.createServer(certOptions, app).listen(port, callback);
+    } else {
+        app.listen(port, callback);
     }
 }
 
 module.exports = {
-    start
-}
+    start,
+};

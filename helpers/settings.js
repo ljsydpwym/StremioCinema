@@ -1,14 +1,31 @@
-
-const types = require('../logic/types.js')
+const fs = require('fs');
+const path = require('path');
+const types = require('../logic/types.js');
 
 function settingsLoader(input) {
-    var params
-    try {
-        params = JSON.parse(decodeURIComponent(input))
+    let params = {};
+
+    // Načítání z environmentálních proměnných
+    if (process.env.SETTINGS) {
+        params = JSON.parse(process.env.SETTINGS);
     }
-    catch (error) {
-        params = input
+
+    // Načítání z JSON souboru
+    if (fs.existsSync(input)) {
+        const fileContent = fs.readFileSync(input, 'utf8');
+        params = JSON.parse(fileContent);
     }
+
+    // Načítání z objektu
+    if (typeof input === 'object') {
+        params = input;
+    }
+
+    // Validace a zpracování chyb
+    if (!params || typeof params !== 'object') {
+        throw new Error('Invalid settings input');
+    }
+
     //NEVER REMOVE FIELDS - this will create issue with backward compatibility - ONLY ADD NEW
     return {
         tmdbEnabled: params?.tmdbEnabled ?? false,

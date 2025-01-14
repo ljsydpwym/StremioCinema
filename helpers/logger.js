@@ -1,24 +1,38 @@
-const env = require('./env.js')
+const fs = require('fs');
+const path = require('path');
+const env = require('./env.js');
 
 class Logger {
-
-    constructor(tag, enabled) {
-        this.tag = tag + " "
-        this.enabled = enabled
+    constructor(tag, enabled = true) {
+        this.tag = tag;
+        this.enabled = enabled;
+        this.logFile = path.join(__dirname, '..', 'log.txt');
     }
 
-    log(message, ...optionalParams) {
-        if (env.DEBUG && this.enabled) {
-            console.log(this.tag + message, ...optionalParams)
+    log(message, level = 'info') {
+        if (this.enabled) {
+            const timestamp = new Date().toISOString();
+            const logMessage = `[${timestamp}] [${this.tag}] [${level.toUpperCase()}] ${message}`;
+            console.log(logMessage);
+            this.logToFile(logMessage);
         }
     }
 
-    logError(message, ...optionalParams) {
-        if (env.DEBUG) {
-            console.log(this.tag + message, ...optionalParams)
-        }
+    info(message) {
+        this.log(message, 'info');
     }
 
+    warn(message) {
+        this.log(message, 'warn');
+    }
+
+    error(message) {
+        this.log(message, 'error');
+    }
+
+    logToFile(message) {
+        fs.appendFileSync(this.logFile, message + '\n', 'utf8');
+    }
 }
 
-module.exports = Logger
+module.exports = Logger;

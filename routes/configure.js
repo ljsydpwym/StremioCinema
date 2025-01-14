@@ -1,15 +1,30 @@
 const path = require('path');
-const {buildHtml} = require('../www/buildHtml.js');
+const express = require('express');
+const Logger = require('../helpers/logger.js');
+const settings = require('../helpers/settings.js');
 
-function configureOld(req, res) {
-    res.sendFile(path.join(__dirname, '../www/configure.html'))
-}
+const logger = new Logger("CONFIGURE", true);
+const router = express.Router();
 
-function configure(req, res) {
-    res.setHeader('Content-Type', 'text/html')
-    res.send(buildHtml())
-}
+router.get('/configure', (req, res) => {
+    try {
+        const configPath = path.join(__dirname, '..', 'configure.html');
+        res.sendFile(configPath);
+    } catch (error) {
+        logger.error(`Error loading configuration page: ${error.message}`);
+        res.status(500).send({ error: error.message });
+    }
+});
 
-module.exports = {
-    configure
-}
+router.post('/configure', (req, res) => {
+    try {
+        const newSettings = req.body;
+        settings.saveSettings(newSettings);
+        res.status(200).send({ message: 'Settings saved successfully' });
+    } catch (error) {
+        logger.error(`Error saving settings: ${error.message}`);
+        res.status(500).send({ error: error.message });
+    }
+});
+
+module.exports = router;
