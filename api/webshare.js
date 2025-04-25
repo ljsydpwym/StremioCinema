@@ -13,8 +13,8 @@ class Webshare {
 
     passwords = new Map()
 
-	constructor(){}
-    
+    constructor() { }
+
     async loginIfNeeded(encodedToken) {
         logger.log("md5 map", this.md5Value)
         logger.log("encodedToken", encodedToken)
@@ -58,16 +58,20 @@ class Webshare {
         })).children[1].value
     }
 
-    async search(what, category = "video", sort, limit = 20, offset = 0) {
-        return (await callInternal(
+    async search(what, page = 0, sort) {
+        const size = 100
+        const res = (await callInternal(
             `/api/search/`, {
             what: what,
             sort: sort,
-            limit: limit,
-            offset: offset,
-            category: category,
+            limit: size,
+            offset: page * size,
+            category: "video",
             wst: this.token,
-        })).children[1].value
+        })).children
+        return res.filter(it => it.name == 'file')
+            .map(it => it.children.map(it => [it.name, it.value]))
+            .map(it => Object.fromEntries(it))
     }
 
     async file_link_salt(ident) {

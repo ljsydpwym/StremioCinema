@@ -1,4 +1,4 @@
-const {settingsLoader} = require('../settings.js')
+const {settingsLoader} = require('../helpers/settings.js')
 
 describe('load settings with legacy token', () => {
     it('', () => {

@@ -17,16 +17,12 @@ function manifest(req, res) {
         version: env.VERSION,
         name: env.PLUGIN_NAME,
         description: "Add-on to hook into SCC and Webshare VIP search",
-        resources: ['stream', 'catalog', {
-            name: "meta",
-            types: types.SUPPORTED_TYPES,
-            idPrefix: [helpers.PREFIX],
-        }],
+        resources: ['stream'],
         behaviorHints: {
             configurable: true,
             configurationRequired: !settings.token || settings.token.length == 0
         },
-        catalogs: catalogs.catalogsManifest(settings),
+        catalogs: [],
         types: types.SUPPORTED_TYPES,
     })
 }

@@ -8,6 +8,9 @@
     "start": "node ./index.js",
     "vercel": "vercel dev"
   },
+  "jest": {
+    "setupFiles": ["./tests/setup.js"]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
