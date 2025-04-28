@@ -9,7 +9,9 @@
     "vercel": "vercel dev"
   },
   "jest": {
-    "setupFiles": ["./tests/setup.js"]
+    "setupFiles": [
+      "./tests/setup.js"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -24,7 +26,8 @@
     "name-to-imdb": "^3.0.4",
     "needle": "^2.6.0",
     "querystring": "^0.2.1",
-    "stremio-addon-sdk": "^1.6.10"
+    "stremio-addon-sdk": "^1.6.10",
+    "string-similarity-js": "^2.1.4"
   },
   "devDependencies": {
     "cors": "^2.8.5"

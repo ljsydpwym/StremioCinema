@@ -1,4 +1,5 @@
 const qs = require('querystring')
+const { stringSimilarity } = require('string-similarity-js');
 
 const Logger = require('../helpers/logger.js')
 const { settingsLoader } = require('../helpers/settings.js')
@@ -30,9 +31,14 @@ async function loadStreams(params){
 
         let results;
         if (type === types.STREMIO_TYPE.SHOW || type === types.STREMIO_TYPE.ANIME) {
-            results = await getShow(tmdbResult, idParts[1], idParts[2])
+            const name = tmdbResult.tv_results[0].name
+            const season = idParts[1]
+            const episode = idParts[2]
+            const se = `S${toTwo(season)}E${toTwo(episode)}`
+            results = await search(name, se)
         } else {
-            results = await getMovie(tmdbResult)
+            const name = tmdbResult.movie_results[0].title
+            results = await search(name)
         }
         if (!results) {
             return []
@@ -44,22 +50,6 @@ async function loadStreams(params){
         return streams
     }
     
-    
-    async function getShow(tmdbResult, season, episode) {
-        const name = tmdbResult.tv_results[0].name
-        const se = `S${toTwo(season)}E${toTwo(episode)}`
-        const nameWithEpisode = `${name} ${se}`
-        let result;
-        try {
-            const a = (await webshare.search(nameWithEpisode))
-            result = a.filter(it => it.name.includes(name)).filter(it => it.name.includes(se))
-            logger.log("result", result);
-        } catch (e) {
-            result = undefined
-        }
-        return result
-    }
-
     function toTwo(value){
         if(value.length == 1){
             return `0${value}`
@@ -68,14 +58,14 @@ async function loadStreams(params){
         }
     }
     
-    async function getMovie(tmdbResult) {
-        const name = tmdbResult.movie_results[0].title
+    async function search(name, part) {
         let results = [];
         let page = 0
-        while(results.length < 10){
+        while(results.length < 10 && page < 10){
             try {
-                const finds = (await webshare.search(name, page))
-                const result = finds.filter(it => it.name.includes(name))
+                const withPart = part ? `${name} ${part}` : name
+                const finds = (await webshare.search(withPart, page))
+                const result = finds.filter(it => stringSimilarity(it.name, withPart) > 0.3).filter(it => part ? it.name.includes(part) : true)
                 results = results.concat(result)
                 logger.log("result", result);
             } catch (e) {
