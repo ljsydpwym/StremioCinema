@@ -21,6 +21,7 @@ async function loadStreams(params){
 
     const tmdb = new Tmdb()
     const webshare = new Webshare()
+    const scc = new SCC()
 
     async function both(params) {
         logger.log("defineStreamHandler", params)
@@ -31,12 +32,18 @@ async function loadStreams(params){
 
         let results;
         if (type === types.STREMIO_TYPE.SHOW || type === types.STREMIO_TYPE.ANIME) {
+            if (!tmdbResult.tv_results || tmdbResult.tv_results.length === 0) {
+                return []
+            }
             const name = tmdbResult.tv_results[0].name
             const season = idParts[1]
             const episode = idParts[2]
             const se = `S${toTwo(season)}E${toTwo(episode)}`
             results = await search(name, se)
         } else {
+            if (!tmdbResult.movie_results || tmdbResult.movie_results.length === 0) {
+                return []
+            }
             const name = tmdbResult.movie_results[0].title
             results = await search(name)
         }
@@ -48,14 +55,6 @@ async function loadStreams(params){
         const streams = await getStreams(results)
         logger.log("streams", streams)
         return streams
-    }
-    
-    function toTwo(value){
-        if(value.length == 1){
-            return `0${value}`
-        }else{
-            return value
-        }
     }
     
     async function search(name, part) {
@@ -88,8 +87,20 @@ async function loadStreams(params){
         }))
         return streams.filter(it => !it.url.includes("FILE_LINK"))
     }
+
+    async function wsSearch(params) {
+        const idParts = id.split(":")
+        const mediaId = idParts[0];
+        const wsResults = await scc.search(mediaId)
+        if (wsResults.hits.hits.length > 0) {
+            const streams = await getStreams(wsResults.hits.hits)
+            logger.log("WS streams", streams)
+            return streams
+        }
+        return await both(params)
+    }
     
-    return await both(params)
+    return await wsSearch(params)
 }
 
 async function streams(req, res){
